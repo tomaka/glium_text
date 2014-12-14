@@ -73,6 +73,7 @@ pub struct TextDisplay {
 }
 
 // structure containing informations about a character of a font
+#[deriving(Copy, Clone, Show)]
 struct CharacterInfos {
     // coordinates of the character top-left hand corner on the font's texture
     coords: (f32, f32),
@@ -90,6 +91,7 @@ struct CharacterInfos {
 
 #[vertex_format]
 #[allow(non_snake_case)]
+#[deriving(Copy)]
 struct VertexFormat {
     #[allow(dead_code)]
     iPosition: [f32, ..2],
@@ -99,6 +101,7 @@ struct VertexFormat {
 
 #[uniforms]
 #[allow(non_snake_case)]
+#[deriving(Copy)]
 struct Uniforms<'a> {
     uColor: [f32, ..4],
     uMatrix: Mat4<f32>,
