@@ -16,11 +16,11 @@ fn main() {
     let system = glium_text::TextSystem::new(&display);
 
     let font = Arc::new(match std::os::args().into_iter().nth(1) {
-        Some(file) => glium_text::FontTexture::new(&display, File::open(&Path::new(file)), 48),
+        Some(file) => glium_text::FontTexture::new(&display, File::open(&Path::new(file)), 70),
         None => {
             match File::open(&Path::new("C:\\Windows\\Fonts\\Arial.ttf")) {
-                Ok(f) => glium_text::FontTexture::new(&display, f, 48),
-                Err(_) => glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bin!("font.ttf")), 48),
+                Ok(f) => glium_text::FontTexture::new(&display, f, 70),
+                Err(_) => glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bin!("font.ttf")), 70),
             }
         }
     }.unwrap());

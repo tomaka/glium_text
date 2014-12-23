@@ -99,15 +99,6 @@ struct VertexFormat {
     iTexCoords: [f32, ..2],
 }
 
-#[uniforms]
-#[allow(non_snake_case)]
-#[deriving(Copy)]
-struct Uniforms<'a> {
-    uColor: [f32, ..4],
-    uMatrix: Mat4<f32>,
-    uTexture: &'a FontTexture,
-}
-
 impl FontTexture {
     /// Creates a new texture representing a font stored in a `FontTexture`.
     pub fn new<R: Reader>(display: &glium::Display, mut font: R, font_size: u32) -> Result<FontTexture, ()> {
@@ -195,6 +186,12 @@ impl FontTexture {
             texture: texture,
             character_infos: chr_infos,
         })
+    }
+}
+
+impl glium::texture::Texture for FontTexture {
+    fn get_implementation(&self) -> &glium::texture::TextureImplementation {
+        self.texture.get_implementation()
     }
 }
 
@@ -366,11 +363,13 @@ pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: 
     let vertex_buffer = vertex_buffer.as_ref().unwrap();
     let index_buffer = index_buffer.as_ref().unwrap();
 
-    let uniforms = Uniforms {
-        uMatrix: matrix,
-        uColor: color,
-        uTexture: texture.deref(),
-    };
+    let uniforms = glium::uniforms::UniformsStorage::new("uMatrix", matrix)
+        .add("uColor", color)
+        .add("uTexture", glium::uniforms::Sampler(texture.deref(), glium::uniforms::SamplerBehavior {
+            magnify_filter: glium::uniforms::SamplerFilter::Linear,
+            minify_filter: glium::uniforms::SamplerFilter::Linear,
+            .. std::default::Default::default()
+        }));
 
     target.draw(vertex_buffer, index_buffer, &system.program, &uniforms, &std::default::Default::default());
 }
