@@ -366,8 +366,8 @@ pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: 
     let uniforms = glium::uniforms::UniformsStorage::new("uMatrix", matrix)
         .add("uColor", color)
         .add("uTexture", glium::uniforms::Sampler(texture.deref(), glium::uniforms::SamplerBehavior {
-            magnify_filter: glium::uniforms::SamplerFilter::Linear,
-            minify_filter: glium::uniforms::SamplerFilter::Linear,
+            magnify_filter: glium::uniforms::MagnifySamplerFilter::Linear,
+            minify_filter: glium::uniforms::MinifySamplerFilter::Linear,
             .. std::default::Default::default()
         }));
 
