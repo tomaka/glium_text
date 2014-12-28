@@ -208,7 +208,7 @@ impl TextSystem {
         TextSystem {
             display: display.clone(),
             program:
-                glium::Program::new(display, r"
+                glium::Program::from_source(display, r"
                     #version 110
 
                     attribute vec2 iPosition;
