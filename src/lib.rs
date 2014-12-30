@@ -124,7 +124,7 @@ impl FontTexture {
                     libc::realloc(block, new_size as libc::size_t)
                 }
             }
-            static MEMORY: freetype::FT_MemoryRec = freetype::FT_MemoryRec {
+            static mut MEMORY: freetype::FT_MemoryRec = freetype::FT_MemoryRec {
                 user: 0 as *mut libc::c_void,
                 alloc: alloc_library,
                 free: free_library,

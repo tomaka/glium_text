@@ -14,7 +14,7 @@ fn main() {
     let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
     let system = glium_text::TextSystem::new(&display);
 
-    let font = Arc::new(glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bin!("font.ttf")), 70).unwrap());
+    let font = Arc::new(glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bytes!("font.ttf")), 70).unwrap());
 
     let text = glium_text::TextDisplay::new(&system, font, "Hello world!");
 

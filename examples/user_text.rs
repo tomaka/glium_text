@@ -20,7 +20,7 @@ fn main() {
         None => {
             match File::open(&Path::new("C:\\Windows\\Fonts\\Arial.ttf")) {
                 Ok(f) => glium_text::FontTexture::new(&display, f, 70),
-                Err(_) => glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bin!("font.ttf")), 70),
+                Err(_) => glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bytes!("font.ttf")), 70),
             }
         }
     }.unwrap());
