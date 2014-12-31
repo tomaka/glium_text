@@ -189,16 +189,9 @@ impl FontTexture {
     }
 }
 
-impl glium::texture::Texture for FontTexture {
-    fn get_implementation(&self) -> &glium::texture::TextureImplementation {
-        self.texture.get_implementation()
-    }
-}
-
-impl<'a> glium::uniforms::UniformValue for &'a FontTexture {
-    fn to_binder(&self) -> glium::uniforms::UniformValueBinder {
-        use glium::uniforms::UniformValue;
-        (&self.texture).to_binder()
+impl<'a> glium::uniforms::IntoUniformValue<'a> for &'a FontTexture {
+    fn into_uniform_value(self) -> glium::uniforms::UniformValue<'a> {
+        (&self.texture).into_uniform_value()
     }
 }
 
@@ -365,7 +358,7 @@ pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: 
 
     let uniforms = glium::uniforms::UniformsStorage::new("uMatrix", matrix)
         .add("uColor", color)
-        .add("uTexture", glium::uniforms::Sampler(texture.deref(), glium::uniforms::SamplerBehavior {
+        .add("uTexture", glium::uniforms::Sampler(&texture.texture, glium::uniforms::SamplerBehavior {
             magnify_filter: glium::uniforms::MagnifySamplerFilter::Linear,
             minify_filter: glium::uniforms::MinifySamplerFilter::Linear,
             .. std::default::Default::default()
