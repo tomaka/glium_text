@@ -7,6 +7,7 @@ keywords = ["text", "opengl"]
 
 [dependencies.glium]
 git = "https://github.com/tomaka/glium"
+default-features = false
 features = ["nalgebra"]
 
 [dependencies.glium_macros]

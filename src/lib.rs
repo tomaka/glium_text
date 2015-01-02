@@ -368,6 +368,7 @@ pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: 
 }
 
 unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, font_size: u32) -> (Vec<f32>, (u32, u32), Vec<(char, CharacterInfos)>) {
+    use std::iter;
     use std::num::Float;
 
     // setting the right pixel size
@@ -410,7 +411,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         if rows_to_skip < bitmap.rows as u32 {
             let diff = (bitmap.rows as u32) - rows_to_skip;
             rows_to_skip = bitmap.rows as u32;
-            texture_data.grow((diff * texture_width) as uint, 0.0);
+            texture_data.extend(iter::repeat(0.0).take((diff * texture_width) as uint));
         }
 
         // copying the data to the texture
@@ -456,7 +457,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     {
         let current_height = texture_data.len() as u32 / texture_width;
         let requested_height = get_nearest_po2(current_height);
-        texture_data.grow((texture_width * (requested_height - current_height)) as uint, 0.0);
+        texture_data.extend(iter::repeat(0.0).take((texture_width * (requested_height - current_height)) as uint));
     }
 
     // now our texture is finished
