@@ -1,5 +1,3 @@
-#![feature(phase)]
-
 extern crate glutin;
 extern crate glium;
 extern crate glium_text;

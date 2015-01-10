@@ -34,6 +34,7 @@ display.draw().draw(glium_text::DrawCommand(&text, &system,
 */
 
 #![feature(plugin)]
+#![allow(unstable)]
 #![deny(warnings)]
 #![deny(missing_docs)]
 
