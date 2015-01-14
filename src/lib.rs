@@ -211,7 +211,7 @@ impl TextSystem {
                     uniform mat4 uMatrix;
                     
                     void main() {
-                        gl_Position = vec4(iPosition, 0.0, 1.0) * uMatrix;
+                        gl_Position = uMatrix * vec4(iPosition, 0.0, 1.0);
                         vTexCoords = iTexCoords;
                     }
                 ", r"
