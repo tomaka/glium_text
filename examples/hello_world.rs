@@ -15,17 +15,18 @@ fn main() {
     let font = Arc::new(glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bytes!("font.ttf")), 70).unwrap());
 
     let text = glium_text::TextDisplay::new(&system, font, "Hello world!");
+    println!("Text width: {:?}", text.get_width());
 
     'main: loop {
         use std::io::timer;
         use std::time::Duration;
 
-        let (w, h) = (1024.0f32, 768.0f32);
+        let (w, h) = display.get_framebuffer_dimensions();
 
         let matrix = nalgebra::Mat4::new(
-            0.5, 0.0, 0.0, 0.0,
-            0.0, 0.5 * h / w, 0.0, 0.0,
-            0.0, 0.0, 0.5, 0.0,
+            1.0, 0.0, 0.0, -1.0,
+            0.0, 1.0 * (w as f32) / (h as f32), 0.0, -1.0,
+            0.0, 0.0, 1.0, 0.0,
             0.0, 0.0, 0.0, 1.0f32,
         );
 

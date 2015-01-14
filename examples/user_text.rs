@@ -33,11 +33,11 @@ fn main() {
 
         let text = glium_text::TextDisplay::new(&system, font.clone(), buffer.as_slice());
 
-        let (w, h) = (1024.0f32, 768.0f32);
+        let (w, h) = display.get_framebuffer_dimensions();
 
         let matrix = nalgebra::Mat4::new(
-            2.0, 0.0, 0.0, 0.0,
-            0.0, 2.0 * h / w, 0.0, 0.0,
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0 * (w as f32) / (h as f32), 0.0, 0.0,
             0.0, 0.0, 1.0, 0.0,
             0.0, 0.0, 0.0, 1.0f32,
         );
