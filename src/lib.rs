@@ -210,8 +210,8 @@ impl TextSystem {
                     varying vec2 vTexCoords;
                     uniform mat4 uMatrix;
                     
-                    void main() {
-                        gl_Position = uMatrix * vec4(iPosition, 0.0, 1.0);
+                    void main() {       // TODO: understand why '* 4.0' is needed
+                        gl_Position = uMatrix * vec4(iPosition.x * 4.0, iPosition.y, 0.0, 1.0);
                         vTexCoords = iTexCoords;
                     }
                 ", r"
