@@ -365,7 +365,7 @@ pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: 
             .. std::default::Default::default()
         }));
 
-    target.draw(vertex_buffer, index_buffer, &system.program, &uniforms, &std::default::Default::default());
+    target.draw(vertex_buffer, index_buffer, &system.program, &uniforms, &std::default::Default::default()).unwrap();
 }
 
 unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, font_size: u32) -> (Vec<f32>, (u32, u32), Vec<(char, CharacterInfos)>) {
