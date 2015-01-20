@@ -1,3 +1,5 @@
+#![allow(unstable)]
+
 /*!
 
 This crate allows you to easily write text.
@@ -51,7 +53,7 @@ use std::sync::Arc;
 
 /// Texture which contains the characters of the font.
 pub struct FontTexture {
-    texture: glium::texture::CompressedTexture2d,
+    texture: glium::texture::Texture2d,
     character_infos: Vec<(char, CharacterInfos)>,
 }
 
@@ -180,8 +182,8 @@ impl FontTexture {
         };
 
         // we load the texture in the display
-        let texture_data = texture_data.as_slice().chunks(texture_width as uint).map(|s| s.to_vec()).collect::<Vec<_>>();
-        let texture = glium::texture::CompressedTexture2d::new(display, texture_data);
+        let texture_data = texture_data.as_slice().chunks(texture_width as usize).map(|s| s.to_vec()).collect::<Vec<_>>();
+        let texture = glium::texture::Texture2d::new(display, texture_data);
 
         Ok(FontTexture {
             texture: texture,
@@ -209,7 +211,7 @@ impl TextSystem {
                     attribute vec2 iTexCoords;
                     varying vec2 vTexCoords;
                     uniform mat4 uMatrix;
-                    
+
                     void main() {       // TODO: understand why '* 4.0' is needed
                         gl_Position = uMatrix * vec4(iPosition.x * 4.0, iPosition.y, 0.0, 1.0);
                         vTexCoords = iTexCoords;
@@ -220,7 +222,7 @@ impl TextSystem {
                     varying vec2 vTexCoords;
                     uniform vec4 uColor;
                     uniform sampler2D uTexture;
-                    
+
                     void main() {
                         gl_FragColor = vec4(uColor.rgb, uColor.a * texture2D(uTexture, vTexCoords));
                         if (gl_FragColor.a <= 0.01)
@@ -292,7 +294,7 @@ impl TextDisplay {
                 index_buffer_data.push(first_vertex_offset + 3);
             }
 
-            // 
+            //
             self.total_text_width += infos.left_padding;
 
             // calculating coords
@@ -306,7 +308,7 @@ impl TextDisplay {
                 iPosition: [left_coord, top_coord],
                 iTexCoords: [infos.coords.0, infos.coords.1],
             });
-            
+
             // top-right vertex
             vertex_buffer_data.push(VertexFormat {
                 iPosition: [right_coord, top_coord],
@@ -318,13 +320,13 @@ impl TextDisplay {
                 iPosition: [left_coord, bottom_coord],
                 iTexCoords: [infos.coords.0, infos.coords.1 + infos.size.1],
             });
-            
+
             // bottom-right vertex
             vertex_buffer_data.push(VertexFormat {
                 iPosition: [right_coord, bottom_coord],
                 iTexCoords: [infos.coords.0 + infos.size.0, infos.coords.1 + infos.size.1],
             });
-            
+
             // going to next char
             self.total_text_width = right_coord + infos.right_padding;
         }
@@ -376,10 +378,10 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     if freetype::FT_Set_Pixel_Sizes(face, font_size, font_size) != 0 {
         panic!();
     }
-    
+
     // this variable will store the texture data
     // we set an arbitrary capacity that we think will match what we will need
-    let mut texture_data: Vec<f32> = Vec::with_capacity(characters_list.len() * font_size as uint * font_size as uint);
+    let mut texture_data: Vec<f32> = Vec::with_capacity(characters_list.len() * font_size as usize * font_size as usize);
 
     // the width is chosen more or less arbitrarily, because we can store everything as long as the texture is at least as wide as the widest character
     // we just try to estimate a width so that width ~= height
@@ -390,7 +392,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     let mut cursor_offset = (0u32, 0u32);
 
     // number of rows to skip at next carriage return
-    let mut rows_to_skip = 0u32;
+    let mut rows_to_skip = 1u32;
 
     // now looping through the list of characters, filling the texture and returning the informations
     let mut characters_infos: Vec<(char, CharacterInfos)> = characters_list.into_iter().filter_map(|character| {
@@ -412,26 +414,26 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         if rows_to_skip < bitmap.rows as u32 {
             let diff = (bitmap.rows as u32) - rows_to_skip;
             rows_to_skip = bitmap.rows as u32;
-            texture_data.extend(iter::repeat(0.0).take((diff * texture_width) as uint));
+            texture_data.extend(iter::repeat(0.0).take((diff * texture_width) as usize));
         }
 
         // copying the data to the texture
         let offset_x_before_copy = cursor_offset.0;
         if bitmap.rows >= 1 {
-            let destination = texture_data.slice_from_mut((cursor_offset.0 + cursor_offset.1 * texture_width) as uint);
+            let destination = texture_data.slice_from_mut((cursor_offset.0 + cursor_offset.1 * texture_width) as usize);
             let source = std::mem::transmute(bitmap.buffer);
             let source = std::slice::from_raw_buf(&source, destination.len());
 
             for y in range(0, bitmap.rows as u32) {
-                let source = source.slice_from((y * bitmap.width as u32) as uint);
-                let destination = destination.slice_from_mut((y * texture_width) as uint);
+                let source = source.slice_from((y * bitmap.width as u32) as usize);
+                let destination = destination.slice_from_mut((y * texture_width) as usize);
 
                 for x in range(0, bitmap.width) {
                     // the values in source are bytes between 0 and 255, but we want floats between 0 and 1
-                    let val: u8 = *source.get(x as uint).unwrap();
+                    let val: u8 = *source.get(x as usize).unwrap();
                     let max: u8 = std::num::Int::max_value();
                     let val = (val as f32) / (max as f32);
-                    let dest = destination.get_mut(x as uint).unwrap();
+                    let dest = destination.get_mut(x as usize).unwrap();
                     *dest = val;
                 }
             }
@@ -458,7 +460,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     {
         let current_height = texture_data.len() as u32 / texture_width;
         let requested_height = get_nearest_po2(current_height);
-        texture_data.extend(iter::repeat(0.0).take((texture_width * (requested_height - current_height)) as uint));
+        texture_data.extend(iter::repeat(0.0).take((texture_width * (requested_height - current_height)) as usize));
     }
 
     // now our texture is finished
