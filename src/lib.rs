@@ -392,7 +392,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     let mut cursor_offset = (0u32, 0u32);
 
     // number of rows to skip at next carriage return
-    let mut rows_to_skip = 1u32;
+    let mut rows_to_skip = 0u32;
 
     // now looping through the list of characters, filling the texture and returning the informations
     let mut characters_infos: Vec<(char, CharacterInfos)> = characters_list.into_iter().filter_map(|character| {
