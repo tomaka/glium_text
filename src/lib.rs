@@ -420,13 +420,13 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         // copying the data to the texture
         let offset_x_before_copy = cursor_offset.0;
         if bitmap.rows >= 1 {
-            let destination = texture_data.slice_from_mut((cursor_offset.0 + cursor_offset.1 * texture_width) as usize);
+            let destination = &mut texture_data[(cursor_offset.0 + cursor_offset.1 * texture_width) as usize ..];
             let source = std::mem::transmute(bitmap.buffer);
             let source = std::slice::from_raw_buf(&source, destination.len());
 
             for y in range(0, bitmap.rows as u32) {
-                let source = source.slice_from((y * bitmap.width as u32) as usize);
-                let destination = destination.slice_from_mut((y * texture_width) as usize);
+                let source = &source[(y * bitmap.width as u32) as usize ..];
+                let destination = &mut destination[(y * texture_width) as usize ..];
 
                 for x in range(0, bitmap.width) {
                     // the values in source are bytes between 0 and 255, but we want floats between 0 and 1

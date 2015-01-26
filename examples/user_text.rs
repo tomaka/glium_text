@@ -49,7 +49,7 @@ fn main() {
 
         timer::sleep(Duration::milliseconds(17));
 
-        for event in display.poll_events().into_iter() {
+        for event in display.poll_events() {
             match event {
                 glutin::Event::ReceivedCharacter('\r') => buffer.clear(),
                 glutin::Event::ReceivedCharacter(c) if c as u32 == 8 => { buffer.pop(); },
