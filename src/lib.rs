@@ -35,8 +35,7 @@ display.draw().draw(glium_text::DrawCommand(&text, &system,
 
 */
 
-#![feature(plugin)]
-#![allow(unstable)]
+#![feature(core, plugin)]
 #![deny(warnings)]
 #![deny(missing_docs)]
 
@@ -76,7 +75,7 @@ pub struct TextDisplay {
 }
 
 // structure containing informations about a character of a font
-#[derive(Copy, Clone, Show)]
+#[derive(Copy, Clone, Debug)]
 struct CharacterInfos {
     // coordinates of the character top-left hand corner on the font's texture
     coords: (f32, f32),
@@ -468,7 +467,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     assert!((texture_data.len() as u32 % texture_width) == 0);
     let texture_height = (texture_data.len() as u32 / texture_width) as f32;
     let float_texture_width = texture_width as f32;
-    for mut chr in characters_infos.iter_mut() {
+    for chr in characters_infos.iter_mut() {
         chr.1.left_padding /= float_texture_width;
         chr.1.right_padding /= float_texture_width;
         chr.1.height_over_line /= texture_height;
