@@ -36,7 +36,6 @@ display.draw().draw(glium_text::DrawCommand(&text, &system,
 */
 
 #![feature(core, plugin)]
-#![deny(warnings)]
 #![deny(missing_docs)]
 
 #[plugin]
@@ -421,7 +420,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         if bitmap.rows >= 1 {
             let destination = &mut texture_data[(cursor_offset.0 + cursor_offset.1 * texture_width) as usize ..];
             let source = std::mem::transmute(bitmap.buffer);
-            let source = std::slice::from_raw_buf(&source, destination.len());
+            let source = std::slice::from_raw_parts(source, destination.len());
 
             for y in range(0, bitmap.rows as u32) {
                 let source = &source[(y * bitmap.width as u32) as usize ..];
