@@ -37,9 +37,7 @@ display.draw().draw(glium_text::DrawCommand(&text, &system,
 
 #![feature(core, plugin)]
 #![deny(missing_docs)]
-
-#[plugin]
-extern crate glium_macros;
+#![plugin(glium_macros)]
 
 extern crate libc;
 extern crate "freetype-sys" as freetype;
