@@ -406,9 +406,9 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         }
 
         // if the texture data buffer has not enough lines, adding some
-        if rows_to_skip < bitmap.rows as u32 {
-            let diff = (bitmap.rows as u32) - rows_to_skip;
-            rows_to_skip = bitmap.rows as u32;
+        if rows_to_skip < 2 + bitmap.rows as u32 {
+            let diff = 2 + (bitmap.rows as u32) - rows_to_skip;
+            rows_to_skip = 2 + bitmap.rows as u32;
             texture_data.extend(iter::repeat(0.0).take((diff * texture_width) as usize));
         }
 
