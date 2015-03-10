@@ -36,8 +36,8 @@ fn main() {
         let (w, h) = display.get_framebuffer_dimensions();
 
         let matrix = nalgebra::Mat4::new(
-            1.0, 0.0, 0.0, 0.0,
-            0.0, 1.0 * (w as f32) / (h as f32), 0.0, 0.0,
+            0.1, 0.0, 0.0, -0.9,
+            0.0, 0.1 * (w as f32) / (h as f32), 0.0, 0.0,
             0.0, 0.0, 1.0, 0.0,
             0.0, 0.0, 0.0, 1.0f32,
         );
