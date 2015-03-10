@@ -1,5 +1,8 @@
 language: rust
 
+install:
+    - sudo apt-get install libXxf86vm-dev libosmesa6-dev
+
 after_success:
     - |
         [ $TRAVIS_BRANCH = master ] &&
