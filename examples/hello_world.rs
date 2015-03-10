@@ -15,7 +15,8 @@ fn main() {
     let font = Arc::new(glium_text::FontTexture::new(&display, std::old_io::BufReader::new(include_bytes!("font.ttf")), 70).unwrap());
 
     let text = glium_text::TextDisplay::new(&system, font, "Hello world!");
-    println!("Text width: {:?}", text.get_width());
+    let text_width = text.get_width();
+    println!("Text width: {:?}", text_width);
 
     'main: loop {
         use std::old_io::timer;
@@ -24,8 +25,8 @@ fn main() {
         let (w, h) = display.get_framebuffer_dimensions();
 
         let matrix = nalgebra::Mat4::new(
-            1.0, 0.0, 0.0, -1.0,
-            0.0, 1.0 * (w as f32) / (h as f32), 0.0, -1.0,
+            2.0 / text_width, 0.0, 0.0, -1.0,
+            0.0, 2.0 * (w as f32) / (h as f32) / text_width, 0.0, -1.0,
             0.0, 0.0, 1.0, 0.0,
             0.0, 0.0, 0.0, 1.0f32,
         );

@@ -73,16 +73,21 @@ pub struct TextDisplay {
 #[derive(Copy, Clone, Debug)]
 struct CharacterInfos {
     // coordinates of the character top-left hand corner on the font's texture
-    coords: (f32, f32),
+    tex_coords: (f32, f32),
 
     // width and height of character in texture units
+    tex_size: (f32, f32),
+
+    // size of the character in EMs
     size: (f32, f32),
 
-    // number of texture units between the bottom of the character and the base line of text
+    // number of EMs between the bottom of the character and the base line of text
     height_over_line: f32,
-    // number of texture units at the left of the character
+
+    // number of EMs at the left of the character
     left_padding: f32,
-    // number of texture units at the right of the character
+
+    // number of EMs at the right of the character
     right_padding: f32,
 }
 
@@ -204,8 +209,8 @@ impl TextSystem {
                     varying vec2 v_tex_coords;
                     uniform mat4 matrix;
 
-                    void main() {       // TODO: understand why '* 4.0' is needed
-                        gl_Position = matrix * vec4(position.x * 4.0, position.y, 0.0, 1.0);
+                    void main() {
+                        gl_Position = matrix * vec4(position.x, position.y, 0.0, 1.0);
                         v_tex_coords = tex_coords;
                     }
                 ", r"
@@ -299,25 +304,25 @@ impl TextDisplay {
             // top-left vertex
             vertex_buffer_data.push(VertexFormat {
                 position: [left_coord, top_coord],
-                tex_coords: [infos.coords.0, infos.coords.1],
+                tex_coords: [infos.tex_coords.0, infos.tex_coords.1],
             });
 
             // top-right vertex
             vertex_buffer_data.push(VertexFormat {
                 position: [right_coord, top_coord],
-                tex_coords: [infos.coords.0 + infos.size.0, infos.coords.1],
+                tex_coords: [infos.tex_coords.0 + infos.tex_size.0, infos.tex_coords.1],
             });
 
             // bottom-left vertex
             vertex_buffer_data.push(VertexFormat {
                 position: [left_coord, bottom_coord],
-                tex_coords: [infos.coords.0, infos.coords.1 + infos.size.1],
+                tex_coords: [infos.tex_coords.0, infos.tex_coords.1 + infos.tex_size.1],
             });
 
             // bottom-right vertex
             vertex_buffer_data.push(VertexFormat {
                 position: [right_coord, bottom_coord],
-                tex_coords: [infos.coords.0 + infos.size.0, infos.coords.1 + infos.size.1],
+                tex_coords: [infos.tex_coords.0 + infos.tex_size.0, infos.tex_coords.1 + infos.tex_size.1],
             });
 
             // going to next char
@@ -445,16 +450,18 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         }
 
         // filling infos about that character
-        // all informations are in 1/64th of pixels for the moment
-        // when the texture dimensions will be determined, we will divide those by it
-        let left_padding = (*(*face).glyph).bitmap_left * 64;
+        // tex_size and tex_coords are in pixels for the moment ; they will be divided
+        // by the texture dimensions later
+        let left_padding = (*(*face).glyph).bitmap_left;
+        let em_pixels = font_size as f32;
 
         Some((character, CharacterInfos {
-            left_padding: left_padding as f32,
-            right_padding: ((*(*face).glyph).advance.x as i32 - bitmap.width * 64 - left_padding) as f32,
-            height_over_line: ((*(*face).glyph).bitmap_top * 64) as f32,
-            size: ((bitmap.width * 64) as f32, (bitmap.rows * 64) as f32),
-            coords: ((offset_x_before_copy * 64) as f32, (cursor_offset.1 * 64) as f32),
+            tex_size: (bitmap.width as f32, bitmap.rows as f32),
+            tex_coords: (offset_x_before_copy as f32, cursor_offset.1 as f32),
+            size: (bitmap.width as f32 / em_pixels, bitmap.rows as f32 / em_pixels),
+            left_padding: left_padding as f32 / em_pixels,
+            right_padding: ((*(*face).glyph).advance.x as i32 - bitmap.width * 64 - left_padding * 64) as f32 / (em_pixels * 64.0),
+            height_over_line: (*(*face).glyph).bitmap_top as f32 / em_pixels,
         }))
     }).collect();
 
@@ -471,13 +478,10 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     let texture_height = (texture_data.len() as u32 / texture_width) as f32;
     let float_texture_width = texture_width as f32;
     for chr in characters_infos.iter_mut() {
-        chr.1.left_padding /= float_texture_width * 64.0;
-        chr.1.right_padding /= float_texture_width * 64.0;
-        chr.1.height_over_line /= texture_height * 64.0;
-        chr.1.size.0 /= float_texture_width * 64.0;
-        chr.1.size.1 /= texture_height * 64.0;
-        chr.1.coords.0 /= float_texture_width * 64.0;
-        chr.1.coords.1 /= texture_height * 64.0;
+        chr.1.tex_size.0 /= float_texture_width;
+        chr.1.tex_size.1 /= texture_height;
+        chr.1.tex_coords.0 /= float_texture_width;
+        chr.1.tex_coords.1 /= texture_height;
     }
 
     // returning
