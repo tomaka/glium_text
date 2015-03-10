@@ -416,6 +416,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     let mut rows_to_skip = 0u32;
 
     // now looping through the list of characters, filling the texture and returning the informations
+    let mut em_pixels = font_size as f32;
     let mut characters_infos: Vec<(char, CharacterInfos)> = characters_list.into_iter().filter_map(|character| {
         // loading wanted glyph in the font face
         if freetype::FT_Load_Glyph(face, freetype::FT_Get_Char_Index(face, character as freetype::FT_ULong), freetype::FT_LOAD_RENDER) != 0 {
@@ -425,6 +426,12 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
 
         // adding a left margin before our character to prevent artifacts
         cursor_offset.0 += MARGIN;
+
+        // computing em_pixels
+        // FIXME: this is hacky
+        if character == 'M' {
+            em_pixels = bitmap.rows as f32;
+        }
 
         // carriage return our cursor if we don't have enough room to write the next caracter
         // we add a margin to prevent artifacts
@@ -471,15 +478,14 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         // tex_size and tex_coords are in pixels for the moment ; they will be divided
         // by the texture dimensions later
         let left_padding = (*(*face).glyph).bitmap_left;
-        let em_pixels = font_size as f32;
 
         Some((character, CharacterInfos {
             tex_size: (bitmap.width as f32, bitmap.rows as f32),
             tex_coords: (offset_x_before_copy as f32, cursor_offset.1 as f32),
-            size: (bitmap.width as f32 / em_pixels, bitmap.rows as f32 / em_pixels),
-            left_padding: left_padding as f32 / em_pixels,
-            right_padding: ((*(*face).glyph).advance.x as i32 - bitmap.width * 64 - left_padding * 64) as f32 / (em_pixels * 64.0),
-            height_over_line: (*(*face).glyph).bitmap_top as f32 / em_pixels,
+            size: (bitmap.width as f32, bitmap.rows as f32),
+            left_padding: left_padding as f32,
+            right_padding: ((*(*face).glyph).advance.x as i32 - bitmap.width * 64 - left_padding * 64) as f32 / 64.0,
+            height_over_line: (*(*face).glyph).bitmap_top as f32,
         }))
     }).collect();
 
@@ -500,6 +506,11 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         chr.1.tex_size.1 /= texture_height;
         chr.1.tex_coords.0 /= float_texture_width;
         chr.1.tex_coords.1 /= texture_height;
+        chr.1.size.0 /= em_pixels;
+        chr.1.size.1 /= em_pixels;
+        chr.1.left_padding /= em_pixels;
+        chr.1.right_padding /= em_pixels;
+        chr.1.height_over_line /= em_pixels;
     }
 
     // returning
