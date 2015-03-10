@@ -445,16 +445,16 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         }
 
         // filling infos about that character
-        // all informations are in pixels for the moment
+        // all informations are in 1/64th of pixels for the moment
         // when the texture dimensions will be determined, we will divide those by it
-        let left_padding = (*(*face).glyph).bitmap_left;
+        let left_padding = (*(*face).glyph).bitmap_left * 64;
 
         Some((character, CharacterInfos {
             left_padding: left_padding as f32,
-            right_padding: (((*(*face).glyph).advance.x >> 6) as i32 - bitmap.width - left_padding) as f32,
-            height_over_line: (*(*face).glyph).bitmap_top as f32,
-            size: (bitmap.width as f32, bitmap.rows as f32),
-            coords: (offset_x_before_copy as f32, cursor_offset.1 as f32),
+            right_padding: ((*(*face).glyph).advance.x as i32 - bitmap.width * 64 - left_padding) as f32,
+            height_over_line: ((*(*face).glyph).bitmap_top * 64) as f32,
+            size: ((bitmap.width * 64) as f32, (bitmap.rows * 64) as f32),
+            coords: ((offset_x_before_copy * 64) as f32, (cursor_offset.1 * 64) as f32),
         }))
     }).collect();
 
@@ -471,13 +471,13 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     let texture_height = (texture_data.len() as u32 / texture_width) as f32;
     let float_texture_width = texture_width as f32;
     for chr in characters_infos.iter_mut() {
-        chr.1.left_padding /= float_texture_width;
-        chr.1.right_padding /= float_texture_width;
-        chr.1.height_over_line /= texture_height;
-        chr.1.size.0 /= float_texture_width;
-        chr.1.size.1 /= texture_height;
-        chr.1.coords.0 /= float_texture_width;
-        chr.1.coords.1 /= texture_height;
+        chr.1.left_padding /= float_texture_width * 64.0;
+        chr.1.right_padding /= float_texture_width * 64.0;
+        chr.1.height_over_line /= texture_height * 64.0;
+        chr.1.size.0 /= float_texture_width * 64.0;
+        chr.1.size.1 /= texture_height * 64.0;
+        chr.1.coords.0 /= float_texture_width * 64.0;
+        chr.1.coords.1 /= texture_height * 64.0;
     }
 
     // returning
