@@ -43,6 +43,7 @@ extern crate glium;
 extern crate nalgebra;
 
 use nalgebra::Mat4;
+use std::default::Default;
 use std::sync::Arc;
 
 /// Texture which contains the characters of the font.
@@ -101,7 +102,9 @@ implement_vertex!(VertexFormat, position, tex_coords);
 
 impl FontTexture {
     /// Creates a new texture representing a font stored in a `FontTexture`.
-    pub fn new<R: Reader>(display: &glium::Display, mut font: R, font_size: u32) -> Result<FontTexture, ()> {
+    pub fn new<R: Reader>(display: &glium::Display, mut font: R, font_size: u32)
+                          -> Result<FontTexture, ()>
+    {
         // building the freetype library
         // FIXME: call FT_Done_Library
         let library = unsafe {
@@ -145,7 +148,8 @@ impl FontTexture {
 
         let face: freetype::FT_Face = unsafe {
             let mut face = ::std::ptr::null_mut();
-            let err = freetype::FT_New_Memory_Face(library, font.as_ptr(), font.len() as freetype::FT_Long, 0, &mut face);
+            let err = freetype::FT_New_Memory_Face(library, font.as_ptr(),
+                                                   font.len() as freetype::FT_Long, 0, &mut face);
             if err == freetype::FT_Err_Ok {
                 face
             } else {
@@ -179,7 +183,8 @@ impl FontTexture {
         };
 
         // we load the texture in the display
-        let texture_data = texture_data.as_slice().chunks(texture_width as usize).map(|s| s.to_vec()).collect::<Vec<_>>();
+        let texture_data = texture_data.as_slice().chunks(texture_width as usize)
+                                       .map(|s| s.to_vec()).collect::<Vec<_>>();
         let texture = glium::texture::Texture2d::new(display, texture_data);
 
         Ok(FontTexture {
@@ -322,7 +327,10 @@ impl TextDisplay {
             // bottom-right vertex
             vertex_buffer_data.push(VertexFormat {
                 position: [right_coord, bottom_coord],
-                tex_coords: [infos.tex_coords.0 + infos.tex_size.0, infos.tex_coords.1 + infos.tex_size.1],
+                tex_coords: [
+                    infos.tex_coords.0 + infos.tex_size.0,
+                    infos.tex_coords.1 + infos.tex_size.1
+                ],
             });
 
             // going to next char
@@ -334,7 +342,8 @@ impl TextDisplay {
             self.vertex_buffer = Some(glium::VertexBuffer::new(&self.display, vertex_buffer_data));
 
             // building the index buffer
-            self.index_buffer = Some(glium::IndexBuffer::new(&self.display, glium::index_buffer::TrianglesList(index_buffer_data)));
+            self.index_buffer = Some(glium::IndexBuffer::new(&self.display,
+                                     glium::index_buffer::TrianglesList(index_buffer_data)));
         }
     }
 }
@@ -345,7 +354,10 @@ impl TextDisplay {
 /// One unit in height corresponds to a line of text, but the text can go above or under.
 /// The bottom of the line is 0, the top is 1.
 /// You need to adapt your matrix by taking these into consideration.
-pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: Mat4<f32>, color: (f32, f32, f32, f32)) where S: glium::Surface {
+pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: Mat4<f32>,
+               color: (f32, f32, f32, f32))
+               where S: glium::Surface
+{
     let &TextDisplay { ref vertex_buffer, ref index_buffer, ref texture, is_empty, .. } = text;
     let color = [color.0, color.1, color.2, color.3];
 
@@ -363,14 +375,17 @@ pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: 
         texture: glium::uniforms::Sampler(&texture.texture, glium::uniforms::SamplerBehavior {
             magnify_filter: glium::uniforms::MagnifySamplerFilter::Linear,
             minify_filter: glium::uniforms::MinifySamplerFilter::Linear,
-            .. std::default::Default::default()
+            .. Default::default()
         })
     };
 
-    target.draw(vertex_buffer, index_buffer, &system.program, &uniforms, &std::default::Default::default()).unwrap();
+    target.draw(vertex_buffer, index_buffer, &system.program, &uniforms,
+                &Default::default()).unwrap();
 }
 
-unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, font_size: u32) -> (Vec<f32>, (u32, u32), Vec<(char, CharacterInfos)>) {
+unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, font_size: u32)
+                           -> (Vec<f32>, (u32, u32), Vec<(char, CharacterInfos)>)
+{
     use std::iter;
     use std::num::Float;
 
@@ -384,11 +399,14 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
 
     // this variable will store the texture data
     // we set an arbitrary capacity that we think will match what we will need
-    let mut texture_data: Vec<f32> = Vec::with_capacity(characters_list.len() * font_size as usize * font_size as usize);
+    let mut texture_data: Vec<f32> = Vec::with_capacity(characters_list.len() *
+                                                        font_size as usize * font_size as usize);
 
-    // the width is chosen more or less arbitrarily, because we can store everything as long as the texture is at least as wide as the widest character
+    // the width is chosen more or less arbitrarily, because we can store everything as long as
+    //  the texture is at least as wide as the widest character
     // we just try to estimate a width so that width ~= height
-    let texture_width = get_nearest_po2(std::cmp::max(font_size * 2 as u32, ((((characters_list.len() as u32) * font_size * font_size) as f32).sqrt()) as u32));
+    let texture_width = get_nearest_po2(std::cmp::max(font_size * 2 as u32,
+        ((((characters_list.len() as u32) * font_size * font_size) as f32).sqrt()) as u32));
 
     // we store the position of the "cursor" in the destination texture
     // this cursor points to the top-left pixel of the next character to write on the texture
