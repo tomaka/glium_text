@@ -7,6 +7,7 @@ Usage:
 ```no_run
 # extern crate glium;
 # extern crate glium_text;
+# extern crate nalgebra;
 # fn main() {
 # let display: glium::Display = unsafe { std::mem::uninitialized() };
 // The `TextSystem` contains the shaders and elements used for text display.
@@ -14,20 +15,21 @@ let system = glium_text::TextSystem::new(&display);
 
 // Creating a `FontTexture`, which a regular `Texture` which contains the font.
 // Note that loading the systems fonts is not covered by this library.
-let font = glium_text::FontTexture::new(&display, std::io::File::open(&Path::new("my_font.ttf")), 24).unwrap();
+let font = glium_text::FontTexture::new(&display, std::old_io::fs::File::open(&Path::new("my_font.ttf")), 24).unwrap();
+let font = std::sync::Arc::new(font);
 
 // Creating a `TextDisplay` which contains the elements required to draw a specific sentence.
-let text = glium_text::TextDisplay::new(&system, &font, "Hello world!");
+let text = glium_text::TextDisplay::new(&system, font, "Hello world!");
 
-// Finally, drawing the text is done with a `DrawCommand`.
-// This draw command contains the matrix and color to use for the text.
-display.draw().draw(glium_text::DrawCommand(&text, &system,
-    [
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0],
-    ], [1.0, 1.0, 0.0, 1.0]));
+// Finally, drawing the text is done like this:
+let matrix = nalgebra::Mat4::new(
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0,
+);
+
+glium_text::draw(&text, &system, &mut display.draw(), matrix, (1.0, 1.0, 0.0, 1.0));
 # }
 ```
 
