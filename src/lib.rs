@@ -369,6 +369,9 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     use std::iter;
     use std::num::Float;
 
+    // a margin around each character to prevent artifacts
+    const MARGIN: u32 = 2;
+
     // setting the right pixel size
     if freetype::FT_Set_Pixel_Sizes(face, font_size, font_size) != 0 {
         panic!();
@@ -397,8 +400,12 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         }
         let bitmap = &(*(*face).glyph).bitmap;
 
+        // adding a left margin before our character to prevent artifacts
+        cursor_offset.0 += MARGIN;
+
         // carriage return our cursor if we don't have enough room to write the next caracter
-        if cursor_offset.0 + (bitmap.width as u32) >= texture_width {
+        // we add a margin to prevent artifacts
+        if cursor_offset.0 + (bitmap.width as u32) + MARGIN >= texture_width {
             assert!(bitmap.width as u32 <= texture_width);       // if this fails, we should increase texture_width
             cursor_offset.0 = 0;
             cursor_offset.1 += rows_to_skip;
@@ -406,9 +413,9 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         }
 
         // if the texture data buffer has not enough lines, adding some
-        if rows_to_skip < 2 + bitmap.rows as u32 {
-            let diff = 2 + (bitmap.rows as u32) - rows_to_skip;
-            rows_to_skip = 2 + bitmap.rows as u32;
+        if rows_to_skip < MARGIN + bitmap.rows as u32 {
+            let diff = MARGIN + (bitmap.rows as u32) - rows_to_skip;
+            rows_to_skip = MARGIN + bitmap.rows as u32;
             texture_data.extend(iter::repeat(0.0).take((diff * texture_width) as usize));
         }
 
