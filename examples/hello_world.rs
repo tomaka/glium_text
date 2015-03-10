@@ -12,13 +12,13 @@ fn main() {
     let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
     let system = glium_text::TextSystem::new(&display);
 
-    let font = Arc::new(glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bytes!("font.ttf")), 70).unwrap());
+    let font = Arc::new(glium_text::FontTexture::new(&display, std::old_io::BufReader::new(include_bytes!("font.ttf")), 70).unwrap());
 
     let text = glium_text::TextDisplay::new(&system, font, "Hello world!");
     println!("Text width: {:?}", text.get_width());
 
     'main: loop {
-        use std::io::timer;
+        use std::old_io::timer;
         use std::time::Duration;
 
         let (w, h) = display.get_framebuffer_dimensions();

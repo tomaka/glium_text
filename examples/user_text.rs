@@ -8,7 +8,7 @@ use glium::Surface;
 
 fn main() {
     use glium::DisplayBuild;
-    use std::io::File;
+    use std::old_io::File;
 
     let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
     let system = glium_text::TextSystem::new(&display);
@@ -18,7 +18,7 @@ fn main() {
         None => {
             match File::open(&Path::new("C:\\Windows\\Fonts\\Arial.ttf")) {
                 Ok(f) => glium_text::FontTexture::new(&display, f, 70),
-                Err(_) => glium_text::FontTexture::new(&display, std::io::BufReader::new(include_bytes!("font.ttf")), 70),
+                Err(_) => glium_text::FontTexture::new(&display, std::old_io::BufReader::new(include_bytes!("font.ttf")), 70),
             }
         }
     }.unwrap());
@@ -28,7 +28,7 @@ fn main() {
     println!("Type with your keyboard");
 
     'main: loop {
-        use std::io::timer;
+        use std::old_io::timer;
         use std::time::Duration;
 
         let text = glium_text::TextDisplay::new(&system, font.clone(), buffer.as_slice());

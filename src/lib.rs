@@ -1,5 +1,3 @@
-#![allow(unstable)]
-
 /*!
 
 This crate allows you to easily write text.
@@ -35,12 +33,12 @@ display.draw().draw(glium_text::DrawCommand(&text, &system,
 
 */
 
-#![feature(core, plugin)]
+#![feature(core)]
 #![deny(missing_docs)]
-#![plugin(glium_macros)]
 
 extern crate libc;
 extern crate "freetype-sys" as freetype;
+#[macro_use]
 extern crate glium;
 extern crate nalgebra;
 
@@ -88,7 +86,6 @@ struct CharacterInfos {
     right_padding: f32,
 }
 
-#[vertex_format]
 #[allow(non_snake_case)]
 #[derive(Copy)]
 struct VertexFormat {
@@ -97,6 +94,8 @@ struct VertexFormat {
     #[allow(dead_code)]
     iTexCoords: [f32; 2],
 }
+
+implement_vertex!(VertexFormat, iPosition, iTexCoords);
 
 impl FontTexture {
     /// Creates a new texture representing a font stored in a `FontTexture`.

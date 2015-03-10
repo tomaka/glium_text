@@ -6,21 +6,14 @@ description = "Text drawing with glium and freetype"
 keywords = ["text", "opengl"]
 
 [dependencies]
+freetype-sys = "*"
 libc = "*"
+nalgebra = "*"
 
 [dependencies.glium]
-git = "https://github.com/tomaka/glium"
+version = "*"
 default-features = false
 features = ["nalgebra"]
 
-[dependencies.glium_macros]
-git = "https://github.com/tomaka/glium"
-
-[dependencies.freetype-sys]
-git = "https://github.com/PistonDevelopers/freetype-sys"
-
-[dependencies.nalgebra]
-git = "https://github.com/sebcrozet/nalgebra"
-
-[dev-dependencies.glutin]
-git = "https://github.com/tomaka/glutin"
+[dev-dependencies]
+glutin = "*"
