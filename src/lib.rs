@@ -86,16 +86,13 @@ struct CharacterInfos {
     right_padding: f32,
 }
 
-#[allow(non_snake_case)]
 #[derive(Copy)]
 struct VertexFormat {
-    #[allow(dead_code)]
-    iPosition: [f32; 2],
-    #[allow(dead_code)]
-    iTexCoords: [f32; 2],
+    position: [f32; 2],
+    tex_coords: [f32; 2],
 }
 
-implement_vertex!(VertexFormat, iPosition, iTexCoords);
+implement_vertex!(VertexFormat, position, tex_coords);
 
 impl FontTexture {
     /// Creates a new texture representing a font stored in a `FontTexture`.
@@ -202,26 +199,27 @@ impl TextSystem {
                 glium::Program::from_source(display, r"
                     #version 110
 
-                    attribute vec2 iPosition;
-                    attribute vec2 iTexCoords;
-                    varying vec2 vTexCoords;
-                    uniform mat4 uMatrix;
+                    attribute vec2 position;
+                    attribute vec2 tex_coords;
+                    varying vec2 v_tex_coords;
+                    uniform mat4 matrix;
 
                     void main() {       // TODO: understand why '* 4.0' is needed
-                        gl_Position = uMatrix * vec4(iPosition.x * 4.0, iPosition.y, 0.0, 1.0);
-                        vTexCoords = iTexCoords;
+                        gl_Position = matrix * vec4(position.x * 4.0, position.y, 0.0, 1.0);
+                        v_tex_coords = tex_coords;
                     }
                 ", r"
                     #version 110
 
-                    varying vec2 vTexCoords;
-                    uniform vec4 uColor;
-                    uniform sampler2D uTexture;
+                    varying vec2 v_tex_coords;
+                    uniform vec4 color;
+                    uniform sampler2D texture;
 
                     void main() {
-                        gl_FragColor = vec4(uColor.rgb, uColor.a * texture2D(uTexture, vTexCoords));
-                        if (gl_FragColor.a <= 0.01)
+                        gl_FragColor = vec4(color.rgb, color.a * texture2D(texture, v_tex_coords));
+                        if (gl_FragColor.a <= 0.01) {
                             discard;
+                        }
                     }
                 ", None).unwrap()
         }
@@ -300,26 +298,26 @@ impl TextDisplay {
 
             // top-left vertex
             vertex_buffer_data.push(VertexFormat {
-                iPosition: [left_coord, top_coord],
-                iTexCoords: [infos.coords.0, infos.coords.1],
+                position: [left_coord, top_coord],
+                tex_coords: [infos.coords.0, infos.coords.1],
             });
 
             // top-right vertex
             vertex_buffer_data.push(VertexFormat {
-                iPosition: [right_coord, top_coord],
-                iTexCoords: [infos.coords.0 + infos.size.0, infos.coords.1],
+                position: [right_coord, top_coord],
+                tex_coords: [infos.coords.0 + infos.size.0, infos.coords.1],
             });
 
             // bottom-left vertex
             vertex_buffer_data.push(VertexFormat {
-                iPosition: [left_coord, bottom_coord],
-                iTexCoords: [infos.coords.0, infos.coords.1 + infos.size.1],
+                position: [left_coord, bottom_coord],
+                tex_coords: [infos.coords.0, infos.coords.1 + infos.size.1],
             });
 
             // bottom-right vertex
             vertex_buffer_data.push(VertexFormat {
-                iPosition: [right_coord, bottom_coord],
-                iTexCoords: [infos.coords.0 + infos.size.0, infos.coords.1 + infos.size.1],
+                position: [right_coord, bottom_coord],
+                tex_coords: [infos.coords.0 + infos.size.0, infos.coords.1 + infos.size.1],
             });
 
             // going to next char
@@ -354,13 +352,15 @@ pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: 
     let vertex_buffer = vertex_buffer.as_ref().unwrap();
     let index_buffer = index_buffer.as_ref().unwrap();
 
-    let uniforms = glium::uniforms::UniformsStorage::new("uMatrix", matrix)
-        .add("uColor", color)
-        .add("uTexture", glium::uniforms::Sampler(&texture.texture, glium::uniforms::SamplerBehavior {
+    let uniforms = uniform! {
+        matrix: matrix,
+        color: color,
+        texture: glium::uniforms::Sampler(&texture.texture, glium::uniforms::SamplerBehavior {
             magnify_filter: glium::uniforms::MagnifySamplerFilter::Linear,
             minify_filter: glium::uniforms::MinifySamplerFilter::Linear,
             .. std::default::Default::default()
-        }));
+        })
+    };
 
     target.draw(vertex_buffer, index_buffer, &system.program, &uniforms, &std::default::Default::default()).unwrap();
 }
