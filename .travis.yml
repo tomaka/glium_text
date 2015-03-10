@@ -7,4 +7,12 @@ after_success:
     - |
         [ $TRAVIS_BRANCH = master ] &&
         [ $TRAVIS_PULL_REQUEST = false ] &&
+        cargo doc -j 1 &&
+        cp -R doc/* target/doc &&
+        sudo pip install ghp-import &&
+        ghp-import target/doc &&
+        git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
+    - |
+        [ $TRAVIS_BRANCH = master ] &&
+        [ $TRAVIS_PULL_REQUEST = false ] &&
         cargo publish --token ${CRATESIO_TOKEN}
