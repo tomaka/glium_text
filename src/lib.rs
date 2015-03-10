@@ -43,6 +43,7 @@ extern crate glium;
 extern crate nalgebra;
 
 use nalgebra::Mat4;
+use std::borrow::Cow;
 use std::default::Default;
 use std::sync::Arc;
 
@@ -90,6 +91,25 @@ struct CharacterInfos {
 
     // number of EMs at the right of the character
     right_padding: f32,
+}
+
+struct TextureData {
+    data: Vec<f32>,
+    width: u32,
+    height: u32,
+}
+
+impl<'a> glium::texture::Texture2dDataSource<'a> for &'a TextureData {
+    type Data = f32;
+
+    fn into_raw(self) -> glium::texture::RawImage2d<'a, f32> {
+        glium::texture::RawImage2d {
+            data: Cow::Borrowed(&self.data),
+            width: self.width,
+            height: self.height,
+            format: glium::texture::ClientFormat::F32,
+        }
+    }
 }
 
 #[derive(Copy)]
@@ -178,14 +198,12 @@ impl FontTexture {
         };
 
         // building the infos
-        let (texture_data, (texture_width, _texture_height), chr_infos) = unsafe {
+        let (texture_data, chr_infos) = unsafe {
             build_font_image(face, characters_list, font_size)
         };
 
         // we load the texture in the display
-        let texture_data = texture_data.as_slice().chunks(texture_width as usize)
-                                       .map(|s| s.to_vec()).collect::<Vec<_>>();
-        let texture = glium::texture::Texture2d::new(display, texture_data);
+        let texture = glium::texture::Texture2d::new(display, &texture_data);
 
         Ok(FontTexture {
             texture: texture,
@@ -384,7 +402,7 @@ pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: 
 }
 
 unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, font_size: u32)
-                           -> (Vec<f32>, (u32, u32), Vec<(char, CharacterInfos)>)
+                           -> (TextureData, Vec<(char, CharacterInfos)>)
 {
     use std::iter;
     use std::num::Float;
@@ -514,7 +532,11 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     }
 
     // returning
-    (texture_data, (texture_width, texture_height as u32), characters_infos)
+    (TextureData {
+        data: texture_data,
+        width: texture_width,
+        height: texture_height as u32,
+    }, characters_infos)
 }
 
 /// Function that will calculate the nearest power of two.
