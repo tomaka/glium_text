@@ -3,22 +3,23 @@ extern crate glium;
 extern crate glium_text;
 extern crate nalgebra;
 
+use std::path::Path;
 use std::sync::Arc;
 use glium::Surface;
 
 fn main() {
     use glium::DisplayBuild;
-    use std::old_io::File;
+    use std::fs::File;
 
     let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
     let system = glium_text::TextSystem::new(&display);
 
     let font = Arc::new(match std::os::args().into_iter().nth(1) {
-        Some(file) => glium_text::FontTexture::new(&display, File::open(&Path::new(file)), 70),
+        Some(file) => glium_text::FontTexture::new(&display, File::open(&Path::new(&file)).unwrap(), 70),
         None => {
             match File::open(&Path::new("C:\\Windows\\Fonts\\Arial.ttf")) {
                 Ok(f) => glium_text::FontTexture::new(&display, f, 70),
-                Err(_) => glium_text::FontTexture::new(&display, std::old_io::BufReader::new(include_bytes!("font.ttf")), 70),
+                Err(_) => glium_text::FontTexture::new(&display, &include_bytes!("font.ttf")[..], 70),
             }
         }
     }.unwrap());

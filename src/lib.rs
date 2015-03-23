@@ -47,6 +47,7 @@ extern crate nalgebra;
 use nalgebra::Mat4;
 use std::borrow::Cow;
 use std::default::Default;
+use std::io::Read;
 use std::sync::Arc;
 
 /// Texture which contains the characters of the font.
@@ -124,8 +125,8 @@ implement_vertex!(VertexFormat, position, tex_coords);
 
 impl FontTexture {
     /// Creates a new texture representing a font stored in a `FontTexture`.
-    pub fn new<R: Reader>(display: &glium::Display, mut font: R, font_size: u32)
-                          -> Result<FontTexture, ()>
+    pub fn new<R>(display: &glium::Display, font: R, font_size: u32)
+                  -> Result<FontTexture, ()> where R: Read
     {
         // building the freetype library
         // FIXME: call FT_Done_Library
@@ -166,7 +167,7 @@ impl FontTexture {
         };
 
         // building the freetype face object
-        let font = try!(font.read_to_end().map_err(|_| {}));
+        let font: Vec<u8> = font.bytes().map(|c| c.unwrap()).collect();
 
         let face: freetype::FT_Face = unsafe {
             let mut face = ::std::ptr::null_mut();
@@ -476,11 +477,11 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
             let source = std::mem::transmute(bitmap.buffer);
             let source = std::slice::from_raw_parts(source, destination.len());
 
-            for y in range(0, bitmap.rows as u32) {
+            for y in (0 .. bitmap.rows as u32) {
                 let source = &source[(y * bitmap.width as u32) as usize ..];
                 let destination = &mut destination[(y * texture_width) as usize ..];
 
-                for x in range(0, bitmap.width) {
+                for x in (0 .. bitmap.width) {
                     // the values in source are bytes between 0 and 255, but we want floats between 0 and 1
                     let val: u8 = *source.get(x as usize).unwrap();
                     let max: u8 = std::num::Int::max_value();
