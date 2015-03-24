@@ -15,7 +15,7 @@ let system = glium_text::TextSystem::new(&display);
 
 // Creating a `FontTexture`, which a regular `Texture` which contains the font.
 // Note that loading the systems fonts is not covered by this library.
-let font = glium_text::FontTexture::new(&display, std::old_io::fs::File::open(&Path::new("my_font.ttf")), 24).unwrap();
+let font = glium_text::FontTexture::new(&display, std::fs::File::open(&std::path::Path::new("my_font.ttf")).unwrap(), 24).unwrap();
 let font = std::sync::Arc::new(font);
 
 // Creating a `TextDisplay` which contains the elements required to draw a specific sentence.
