@@ -44,11 +44,14 @@ extern crate "freetype-sys" as freetype;
 extern crate glium;
 extern crate nalgebra;
 
+use glium::backend::Context;
+use glium::backend::Facade;
 use nalgebra::Mat4;
 use std::borrow::Cow;
 use std::default::Default;
 use std::io::Read;
 use std::sync::Arc;
+use std::rc::Rc;
 
 /// Texture which contains the characters of the font.
 pub struct FontTexture {
@@ -60,13 +63,13 @@ pub struct FontTexture {
 ///
 /// Required to create a `TextDisplay`.
 pub struct TextSystem {
-    display: glium::Display,
+    context: Rc<Context>,
     program: glium::Program,
 }
 
 /// Object that will allow you to draw a text.
 pub struct TextDisplay {
-    display: glium::Display,
+    context: Rc<Context>,
     texture: Arc<FontTexture>,
     vertex_buffer: Option<glium::VertexBuffer<VertexFormat>>,
     index_buffer: Option<glium::IndexBuffer>,
@@ -125,8 +128,8 @@ implement_vertex!(VertexFormat, position, tex_coords);
 
 impl FontTexture {
     /// Creates a new texture representing a font stored in a `FontTexture`.
-    pub fn new<R>(display: &glium::Display, font: R, font_size: u32)
-                  -> Result<FontTexture, ()> where R: Read
+    pub fn new<R, F>(facade: &F, font: R, font_size: u32)
+                     -> Result<FontTexture, ()> where R: Read, F: Facade
     {
         // building the freetype library
         // FIXME: call FT_Done_Library
@@ -206,7 +209,7 @@ impl FontTexture {
         };
 
         // we load the texture in the display
-        let texture = glium::texture::Texture2d::new(display, &texture_data);
+        let texture = glium::texture::Texture2d::new(facade, &texture_data);
 
         Ok(FontTexture {
             texture: texture,
@@ -223,11 +226,11 @@ impl<'a> glium::uniforms::IntoUniformValue<'a> for &'a FontTexture {
 
 impl TextSystem {
     /// Builds a new text system that must be used to build `TextDisplay` objects.
-    pub fn new(display: &glium::Display) -> TextSystem {
+    pub fn new<F>(facade: &F) -> TextSystem where F: Facade {
         TextSystem {
-            display: display.clone(),
+            context: facade.get_context().clone(),
             program:
-                glium::Program::from_source(display, r"
+                glium::Program::from_source(facade, r"
                     #version 110
 
                     attribute vec2 position;
@@ -261,7 +264,7 @@ impl TextDisplay {
     /// Builds a new text display that allows you to draw text.
     pub fn new(system: &TextSystem, texture: Arc<FontTexture>, text: &str) -> TextDisplay {
         let mut text_display = TextDisplay {
-            display: system.display.clone(),
+            context: system.context.clone(),
             texture: texture,
             vertex_buffer: None,
             index_buffer: None,
@@ -360,10 +363,10 @@ impl TextDisplay {
 
         if !vertex_buffer_data.len() != 0 {
             // building the vertex buffer
-            self.vertex_buffer = Some(glium::VertexBuffer::new(&self.display, vertex_buffer_data));
+            self.vertex_buffer = Some(glium::VertexBuffer::new(&self.context, vertex_buffer_data));
 
             // building the index buffer
-            self.index_buffer = Some(glium::IndexBuffer::new(&self.display,
+            self.index_buffer = Some(glium::IndexBuffer::new(&self.context,
                                      glium::index_buffer::TrianglesList(index_buffer_data)));
         }
     }
