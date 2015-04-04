@@ -5,6 +5,7 @@ extern crate nalgebra;
 
 use std::path::Path;
 use std::sync::Arc;
+use std::thread;
 use glium::Surface;
 
 fn main() {
@@ -14,7 +15,7 @@ fn main() {
     let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
     let system = glium_text::TextSystem::new(&display);
 
-    let font = Arc::new(match std::os::args().into_iter().nth(1) {
+    let font = Arc::new(match std::env::args().nth(1) {
         Some(file) => glium_text::FontTexture::new(&display, File::open(&Path::new(&file)).unwrap(), 70),
         None => {
             match File::open(&Path::new("C:\\Windows\\Fonts\\Arial.ttf")) {
@@ -29,10 +30,7 @@ fn main() {
     println!("Type with your keyboard");
 
     'main: loop {
-        use std::old_io::timer;
-        use std::time::Duration;
-
-        let text = glium_text::TextDisplay::new(&system, font.clone(), buffer.as_slice());
+        let text = glium_text::TextDisplay::new(&system, font.clone(), &buffer);
 
         let (w, h) = display.get_framebuffer_dimensions();
 
@@ -48,7 +46,7 @@ fn main() {
         glium_text::draw(&text, &system, &mut target, matrix, (1.0, 1.0, 0.0, 1.0));
         target.finish();
 
-        timer::sleep(Duration::milliseconds(17));
+        thread::sleep_ms(17);
 
         for event in display.poll_events() {
             match event {

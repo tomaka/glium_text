@@ -3,8 +3,8 @@ extern crate glium;
 extern crate glium_text;
 extern crate nalgebra;
 
-use std::path::Path;
 use std::sync::Arc;
+use std::thread;
 use glium::Surface;
 
 fn main() {
@@ -20,9 +20,6 @@ fn main() {
     println!("Text width: {:?}", text_width);
 
     'main: loop {
-        use std::old_io::timer;
-        use std::time::Duration;
-
         let (w, h) = display.get_framebuffer_dimensions();
 
         let matrix = nalgebra::Mat4::new(
@@ -37,7 +34,7 @@ fn main() {
         glium_text::draw(&text, &system, &mut target, matrix, (1.0, 1.0, 0.0, 1.0));
         target.finish();
 
-        timer::sleep(Duration::milliseconds(17));
+        thread::sleep_ms(17);
 
         for event in display.poll_events() {
             match event {

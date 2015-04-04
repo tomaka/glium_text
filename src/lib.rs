@@ -35,11 +35,10 @@ glium_text::draw(&text, &system, &mut display.draw(), matrix, (1.0, 1.0, 0.0, 1.
 
 */
 
-#![feature(core)]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 
 extern crate libc;
-extern crate "freetype-sys" as freetype;
+extern crate freetype_sys as freetype;
 #[macro_use]
 extern crate glium;
 extern crate nalgebra;
@@ -118,7 +117,7 @@ impl<'a> glium::texture::Texture2dDataSource<'a> for &'a TextureData {
     }
 }
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 struct VertexFormat {
     position: [f32; 2],
     tex_coords: [f32; 2],
@@ -299,7 +298,7 @@ impl TextDisplay {
         let mut index_buffer_data = Vec::with_capacity(text.len() * 6);
 
         // iterating over the characters of the string
-        for character in text.nfc_chars() {
+        for character in text.chars() {     // FIXME: wrong, but only thing stable
             let infos = match self.texture.character_infos
                 .iter().find(|&&(chr, _)| chr == character)
             {
@@ -367,7 +366,7 @@ impl TextDisplay {
 
             // building the index buffer
             self.index_buffer = Some(glium::IndexBuffer::new(&self.context,
-                                     glium::index_buffer::TrianglesList(index_buffer_data)));
+                                     glium::index::TrianglesList(index_buffer_data)));
         }
     }
 }
@@ -411,7 +410,6 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
                            -> (TextureData, Vec<(char, CharacterInfos)>)
 {
     use std::iter;
-    use std::num::Float;
 
     // a margin around each character to prevent artifacts
     const MARGIN: u32 = 2;
@@ -487,8 +485,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
                 for x in (0 .. bitmap.width) {
                     // the values in source are bytes between 0 and 255, but we want floats between 0 and 1
                     let val: u8 = *source.get(x as usize).unwrap();
-                    let max: u8 = std::num::Int::max_value();
-                    let val = (val as f32) / (max as f32);
+                    let val = (val as f32) / (std::u8::MAX as f32);
                     let dest = destination.get_mut(x as usize).unwrap();
                     *dest = val;
                 }
