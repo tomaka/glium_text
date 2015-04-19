@@ -217,11 +217,11 @@ impl FontTexture {
     }
 }
 
-impl<'a> glium::uniforms::IntoUniformValue<'a> for &'a FontTexture {
-    fn into_uniform_value(self) -> glium::uniforms::UniformValue<'a> {
-        (&self.texture).into_uniform_value()
+/*impl glium::uniforms::AsUniformValue for FontTexture {
+    fn as_uniform_value(&self) -> glium::uniforms::UniformValue {
+        glium::uniforms::AsUniformValue::as_uniform_value(&self.texture)
     }
-}
+}*/
 
 impl TextSystem {
     /// Builds a new text system that must be used to build `TextDisplay` objects.
