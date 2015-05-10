@@ -1,11 +1,12 @@
 extern crate glutin;
 extern crate glium;
 extern crate glium_text;
-extern crate nalgebra;
+extern crate cgmath;
 
 use std::path::Path;
 use std::sync::Arc;
 use std::thread;
+use cgmath::FixedArray;
 use glium::Surface;
 
 fn main() {
@@ -34,16 +35,16 @@ fn main() {
 
         let (w, h) = display.get_framebuffer_dimensions();
 
-        let matrix = nalgebra::Mat4::new(
-            0.1, 0.0, 0.0, -0.9,
+        let matrix = cgmath::Matrix4::new(
+            0.1, 0.0, 0.0, 0.0,
             0.0, 0.1 * (w as f32) / (h as f32), 0.0, 0.0,
             0.0, 0.0, 1.0, 0.0,
-            0.0, 0.0, 0.0, 1.0f32,
+            -0.9, 0.0, 0.0, 1.0f32,
         );
 
         let mut target = display.draw();
         target.clear_color(0.0, 0.0, 0.0, 1.0);
-        glium_text::draw(&text, &system, &mut target, matrix, (1.0, 1.0, 0.0, 1.0));
+        glium_text::draw(&text, &system, &mut target, matrix.into_fixed(), (1.0, 1.0, 0.0, 1.0));
         target.finish();
 
         thread::sleep_ms(17);

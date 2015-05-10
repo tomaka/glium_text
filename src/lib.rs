@@ -7,7 +7,7 @@ Usage:
 ```no_run
 # extern crate glium;
 # extern crate glium_text;
-# extern crate nalgebra;
+# extern crate cgmath;
 # fn main() {
 # let display: glium::Display = unsafe { std::mem::uninitialized() };
 // The `TextSystem` contains the shaders and elements used for text display.
@@ -22,13 +22,10 @@ let font = std::sync::Arc::new(font);
 let text = glium_text::TextDisplay::new(&system, font, "Hello world!");
 
 // Finally, drawing the text is done like this:
-let matrix = nalgebra::Mat4::new(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 1.0, 0.0,
-    0.0, 0.0, 0.0, 1.0,
-);
-
+let matrix = [[1.0, 0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0, 0.0],
+              [0.0, 0.0, 1.0, 0.0],
+              [0.0, 0.0, 0.0, 1.0]];
 glium_text::draw(&text, &system, &mut display.draw(), matrix, (1.0, 1.0, 0.0, 1.0));
 # }
 ```
@@ -41,11 +38,9 @@ extern crate libc;
 extern crate freetype_sys as freetype;
 #[macro_use]
 extern crate glium;
-extern crate nalgebra;
 
 use glium::backend::Context;
 use glium::backend::Facade;
-use nalgebra::Mat4;
 use std::borrow::Cow;
 use std::default::Default;
 use std::io::Read;
@@ -374,13 +369,17 @@ impl TextDisplay {
 ///
 /// ## About the matrix
 ///
+/// The matrix must be column-major post-muliplying (which is the usual way to do in OpenGL).
+///
 /// One unit in height corresponds to a line of text, but the text can go above or under.
-/// The bottom of the line is 0, the top is 1.
+/// The bottom of the line is at `0.0`, the top is at `1.0`.
 /// You need to adapt your matrix by taking these into consideration.
-pub fn draw<S>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: Mat4<f32>,
-               color: (f32, f32, f32, f32))
-               where S: glium::Surface
+pub fn draw<S, M>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: M,
+                  color: (f32, f32, f32, f32))
+                  where S: glium::Surface, M: Into<[[f32; 4]; 4]>
 {
+    let matrix = matrix.into();
+
     let &TextDisplay { ref vertex_buffer, ref index_buffer, ref texture, is_empty, .. } = text;
     let color = [color.0, color.1, color.2, color.3];
 
