@@ -4,7 +4,6 @@ extern crate glium_text;
 extern crate cgmath;
 
 use std::path::Path;
-use std::sync::Arc;
 use std::thread;
 use cgmath::FixedArray;
 use glium::Surface;
@@ -16,7 +15,7 @@ fn main() {
     let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
     let system = glium_text::TextSystem::new(&display);
 
-    let font = Arc::new(match std::env::args().nth(1) {
+    let font = match std::env::args().nth(1) {
         Some(file) => glium_text::FontTexture::new(&display, File::open(&Path::new(&file)).unwrap(), 70),
         None => {
             match File::open(&Path::new("C:\\Windows\\Fonts\\Arial.ttf")) {
@@ -24,14 +23,14 @@ fn main() {
                 Err(_) => glium_text::FontTexture::new(&display, &include_bytes!("font.ttf")[..], 70),
             }
         }
-    }.unwrap());
+    }.unwrap();
 
     let mut buffer = String::new();
 
     println!("Type with your keyboard");
 
     'main: loop {
-        let text = glium_text::TextDisplay::new(&system, font.clone(), &buffer);
+        let text = glium_text::TextDisplay::new(&system, &font, &buffer);
 
         let (w, h) = display.get_framebuffer_dimensions();
 
