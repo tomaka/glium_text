@@ -1,4 +1,5 @@
 language: rust
+rust: 1.0.0-beta.4
 
 install:
     - sudo apt-get install libXxf86vm-dev libosmesa6-dev
