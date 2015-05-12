@@ -3,7 +3,6 @@ extern crate glium;
 extern crate glium_text;
 extern crate cgmath;
 
-use std::sync::Arc;
 use std::thread;
 use cgmath::FixedArray;
 use glium::Surface;
@@ -14,9 +13,9 @@ fn main() {
     let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
     let system = glium_text::TextSystem::new(&display);
 
-    let font = Arc::new(glium_text::FontTexture::new(&display, &include_bytes!("font.ttf")[..], 70).unwrap());
+    let font = glium_text::FontTexture::new(&display, &include_bytes!("font.ttf")[..], 70).unwrap();
 
-    let text = glium_text::TextDisplay::new(&system, font, "Hello world!");
+    let text = glium_text::TextDisplay::new(&system, &font, "Hello world!");
     let text_width = text.get_width();
     println!("Text width: {:?}", text_width);
 

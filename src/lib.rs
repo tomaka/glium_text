@@ -16,10 +16,9 @@ let system = glium_text::TextSystem::new(&display);
 // Creating a `FontTexture`, which a regular `Texture` which contains the font.
 // Note that loading the systems fonts is not covered by this library.
 let font = glium_text::FontTexture::new(&display, std::fs::File::open(&std::path::Path::new("my_font.ttf")).unwrap(), 24).unwrap();
-let font = std::sync::Arc::new(font);
 
 // Creating a `TextDisplay` which contains the elements required to draw a specific sentence.
-let text = glium_text::TextDisplay::new(&system, font, "Hello world!");
+let text = glium_text::TextDisplay::new(&system, &font, "Hello world!");
 
 // Finally, drawing the text is done like this:
 let matrix = [[1.0, 0.0, 0.0, 0.0],
@@ -44,7 +43,7 @@ use glium::backend::Facade;
 use std::borrow::Cow;
 use std::default::Default;
 use std::io::Read;
-use std::sync::Arc;
+use std::ops::Deref;
 use std::rc::Rc;
 
 /// Texture which contains the characters of the font.
@@ -62,9 +61,9 @@ pub struct TextSystem {
 }
 
 /// Object that will allow you to draw a text.
-pub struct TextDisplay {
+pub struct TextDisplay<F> where F: Deref<Target=FontTexture> {
     context: Rc<Context>,
-    texture: Arc<FontTexture>,
+    texture: F,
     vertex_buffer: Option<glium::VertexBuffer<VertexFormat>>,
     index_buffer: Option<glium::IndexBuffer>,
     total_text_width: f32,
@@ -254,9 +253,9 @@ impl TextSystem {
     }
 }
 
-impl TextDisplay {
+impl<F> TextDisplay<F> where F: Deref<Target=FontTexture> {
     /// Builds a new text display that allows you to draw text.
-    pub fn new(system: &TextSystem, texture: Arc<FontTexture>, text: &str) -> TextDisplay {
+    pub fn new(system: &TextSystem, texture: F, text: &str) -> TextDisplay<F> {
         let mut text_display = TextDisplay {
             context: system.context.clone(),
             texture: texture,
@@ -374,9 +373,9 @@ impl TextDisplay {
 /// One unit in height corresponds to a line of text, but the text can go above or under.
 /// The bottom of the line is at `0.0`, the top is at `1.0`.
 /// You need to adapt your matrix by taking these into consideration.
-pub fn draw<S, M>(text: &TextDisplay, system: &TextSystem, target: &mut S, matrix: M,
-                  color: (f32, f32, f32, f32))
-                  where S: glium::Surface, M: Into<[[f32; 4]; 4]>
+pub fn draw<F, S, M>(text: &TextDisplay<F>, system: &TextSystem, target: &mut S, matrix: M,
+                     color: (f32, f32, f32, f32))
+                     where S: glium::Surface, M: Into<[[f32; 4]; 4]>, F: Deref<Target=FontTexture>
 {
     let matrix = matrix.into();
 
