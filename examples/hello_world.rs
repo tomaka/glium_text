@@ -1,4 +1,3 @@
-extern crate glutin;
 extern crate glium;
 extern crate glium_text;
 extern crate cgmath;
@@ -6,6 +5,7 @@ extern crate cgmath;
 use std::thread;
 use cgmath::FixedArray;
 use glium::Surface;
+use glium::glutin;
 
 fn main() {
     use glium::DisplayBuild;
