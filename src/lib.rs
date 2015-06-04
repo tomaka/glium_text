@@ -65,7 +65,7 @@ pub struct TextDisplay<F> where F: Deref<Target=FontTexture> {
     context: Rc<Context>,
     texture: F,
     vertex_buffer: Option<glium::VertexBuffer<VertexFormat>>,
-    index_buffer: Option<glium::IndexBuffer>,
+    index_buffer: Option<glium::IndexBuffer<u16>>,
     total_text_width: f32,
     is_empty: bool,
 }
@@ -360,7 +360,8 @@ impl<F> TextDisplay<F> where F: Deref<Target=FontTexture> {
 
             // building the index buffer
             self.index_buffer = Some(glium::IndexBuffer::new(&self.context,
-                                     glium::index::TrianglesList(index_buffer_data)));
+                                     glium::index::PrimitiveType::TrianglesList,
+                                     index_buffer_data));
         }
     }
 }
