@@ -154,7 +154,7 @@ impl FontTexture {
             };
 
             let mut raw = ::std::ptr::null_mut();
-            if freetype::FT_New_Library(&MEMORY, &mut raw) != freetype::FT_Err_Ok {
+            if freetype::FT_New_Library(&mut MEMORY, &mut raw) != freetype::FT_Err_Ok {
                 return Err(());
             }
             freetype::FT_Add_Default_Modules(raw);

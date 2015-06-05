@@ -7,7 +7,7 @@ keywords = ["text", "opengl"]
 license = "MIT"
 
 [dependencies]
-freetype-sys = "*"
+freetype-sys = "0.1"
 libc = "0.1"
 
 [dependencies.glium]
