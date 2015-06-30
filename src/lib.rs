@@ -38,6 +38,7 @@ extern crate freetype_sys as freetype;
 #[macro_use]
 extern crate glium;
 
+use glium::DrawParameters;
 use glium::backend::Context;
 use glium::backend::Facade;
 use std::borrow::Cow;
@@ -222,33 +223,70 @@ impl TextSystem {
     pub fn new<F>(facade: &F) -> TextSystem where F: Facade {
         TextSystem {
             context: facade.get_context().clone(),
-            program:
-                glium::Program::from_source(facade, r"
-                    #version 110
+            program: program!(facade, 
+                140 => {
+                    vertex: "
+                        #version 140
 
-                    attribute vec2 position;
-                    attribute vec2 tex_coords;
-                    varying vec2 v_tex_coords;
-                    uniform mat4 matrix;
+                        uniform mat4 matrix;
+                        in vec2 position;
+                        in vec2 tex_coords;
 
-                    void main() {
-                        gl_Position = matrix * vec4(position.x, position.y, 0.0, 1.0);
-                        v_tex_coords = tex_coords;
-                    }
-                ", r"
-                    #version 110
+                        out vec2 v_tex_coords;
 
-                    varying vec2 v_tex_coords;
-                    uniform vec4 color;
-                    uniform sampler2D texture;
-
-                    void main() {
-                        gl_FragColor = vec4(color.rgb, color.a * texture2D(texture, v_tex_coords));
-                        if (gl_FragColor.a <= 0.01) {
-                            discard;
+                        void main() {
+                            gl_Position = matrix * vec4(position, 0.0, 1.0);
+                            v_tex_coords = tex_coords;
                         }
-                    }
-                ", None).unwrap()
+                    ",
+                    fragment: "
+                        #version 140
+                        in vec2 v_tex_coords;
+                        out vec4 f_color;
+                        uniform vec4 color;
+                        uniform sampler2D tex;
+                        void main() {
+                            vec4 c = vec4(color.rgb, color.a * texture(tex, v_tex_coords));
+                            if (c.a <= 0.01) {
+                                discard;
+                            } else {
+                                f_color = c;
+                            }
+                        }
+                    "
+                },
+
+                110 => {
+                    vertex: "
+                        #version 110
+
+                        attribute vec2 position;
+                        attribute vec2 tex_coords;
+                        varying vec2 v_tex_coords;
+                        uniform mat4 matrix;
+
+                        void main() {
+                            gl_Position = matrix * vec4(position.x, position.y, 0.0, 1.0);
+                            v_tex_coords = tex_coords;
+                        }
+                    ",
+                    fragment: "
+                        #version 110
+
+                        varying vec2 v_tex_coords;
+                        uniform vec4 color;
+                        uniform sampler2D texture;
+
+                        void main() {
+                            gl_FragColor = vec4(color.rgb, color.a * texture2D(texture, v_tex_coords));
+                            if (gl_FragColor.a <= 0.01) {
+                                discard;
+                            }
+                        }
+                    "
+                },
+
+            ).unwrap()
         }
     }
 }
@@ -401,8 +439,23 @@ pub fn draw<F, S, M>(text: &TextDisplay<F>, system: &TextSystem, target: &mut S,
         })
     };
 
+
+    let params = {
+        use glium::BlendingFunction::Addition;
+        use glium::LinearBlendingFactor::*;
+
+        let blending_function = Addition {
+            source: SourceAlpha,
+            destination: OneMinusSourceAlpha
+        };
+
+        DrawParameters {
+            blending_function: Some (blending_function),
+            .. Default::default()
+        }
+    };
     target.draw(vertex_buffer, index_buffer, &system.program, &uniforms,
-                &Default::default()).unwrap();
+                &params).unwrap();
 }
 
 unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, font_size: u32)
