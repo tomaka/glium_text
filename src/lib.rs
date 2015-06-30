@@ -275,10 +275,10 @@ impl TextSystem {
 
                         varying vec2 v_tex_coords;
                         uniform vec4 color;
-                        uniform sampler2D texture;
+                        uniform sampler2D tex;
 
                         void main() {
-                            gl_FragColor = vec4(color.rgb, color.a * texture2D(texture, v_tex_coords));
+                            gl_FragColor = vec4(color.rgb, color.a * texture2D(tex, v_tex_coords));
                             if (gl_FragColor.a <= 0.01) {
                                 discard;
                             }
@@ -432,7 +432,7 @@ pub fn draw<F, S, M>(text: &TextDisplay<F>, system: &TextSystem, target: &mut S,
     let uniforms = uniform! {
         matrix: matrix,
         color: color,
-        texture: glium::uniforms::Sampler(&texture.texture, glium::uniforms::SamplerBehavior {
+        tex: glium::uniforms::Sampler(&texture.texture, glium::uniforms::SamplerBehavior {
             magnify_filter: glium::uniforms::MagnifySamplerFilter::Linear,
             minify_filter: glium::uniforms::MinifySamplerFilter::Linear,
             .. Default::default()
