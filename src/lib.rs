@@ -203,7 +203,7 @@ impl FontTexture {
         };
 
         // we load the texture in the display
-        let texture = glium::texture::Texture2d::new(facade, &texture_data);
+        let texture = glium::texture::Texture2d::new(facade, &texture_data).unwrap();
 
         Ok(FontTexture {
             texture: texture,
@@ -394,12 +394,13 @@ impl<F> TextDisplay<F> where F: Deref<Target=FontTexture> {
 
         if !vertex_buffer_data.len() != 0 {
             // building the vertex buffer
-            self.vertex_buffer = Some(glium::VertexBuffer::new(&self.context, vertex_buffer_data));
+            self.vertex_buffer = Some(glium::VertexBuffer::new(&self.context,
+                                                               &vertex_buffer_data).unwrap());
 
             // building the index buffer
             self.index_buffer = Some(glium::IndexBuffer::new(&self.context,
                                      glium::index::PrimitiveType::TrianglesList,
-                                     index_buffer_data));
+                                     &index_buffer_data).unwrap());
         }
     }
 }
