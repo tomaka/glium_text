@@ -413,9 +413,10 @@ impl<F> TextDisplay<F> where F: Deref<Target=FontTexture> {
 /// One unit in height corresponds to a line of text, but the text can go above or under.
 /// The bottom of the line is at `0.0`, the top is at `1.0`.
 /// You need to adapt your matrix by taking these into consideration.
-pub fn draw<F, S, M>(text: &TextDisplay<F>, system: &TextSystem, target: &mut S, matrix: M,
-                     color: (f32, f32, f32, f32))
-                     where S: glium::Surface, M: Into<[[f32; 4]; 4]>, F: Deref<Target=FontTexture>
+pub fn draw<F, S: ?Sized, M>(text: &TextDisplay<F>, system: &TextSystem, target: &mut S,
+                             matrix: M, color: (f32, f32, f32, f32))
+                             where S: glium::Surface, M: Into<[[f32; 4]; 4]>,
+                                   F: Deref<Target=FontTexture>
 {
     let matrix = matrix.into();
 
