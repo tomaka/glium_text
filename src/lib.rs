@@ -451,8 +451,14 @@ pub fn draw<F, S: ?Sized, M>(text: &TextDisplay<F>, system: &TextSystem, target:
             destination: OneMinusSourceAlpha
         };
 
+        let blend = glium::Blend {
+            color: blending_function,
+            alpha: blending_function,
+            constant_value: (1.0, 1.0, 1.0, 1.0),
+        };
+
         DrawParameters {
-            blending_function: Some (blending_function),
+            blend: blend,
             .. Default::default()
         }
     };
