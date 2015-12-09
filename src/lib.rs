@@ -538,11 +538,11 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
             let source = std::mem::transmute(bitmap.buffer);
             let source = std::slice::from_raw_parts(source, destination.len());
 
-            for y in (0 .. bitmap.rows as u32) {
+            for y in 0 .. bitmap.rows as u32 {
                 let source = &source[(y * bitmap.width as u32) as usize ..];
                 let destination = &mut destination[(y * texture_width) as usize ..];
 
-                for x in (0 .. bitmap.width) {
+                for x in 0 .. bitmap.width {
                     // the values in source are bytes between 0 and 255, but we want floats between 0 and 1
                     let val: u8 = *source.get(x as usize).unwrap();
                     let val = (val as f32) / (std::u8::MAX as f32);
