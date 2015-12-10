@@ -3,6 +3,7 @@ extern crate glium_text;
 extern crate cgmath;
 
 use std::thread;
+use std::time::Duration;
 use cgmath::FixedArray;
 use glium::Surface;
 use glium::glutin;
@@ -19,6 +20,8 @@ fn main() {
     let text_width = text.get_width();
     println!("Text width: {:?}", text_width);
 
+    let sleep_duration = Duration::from_millis(17);
+
     'main: loop {
         let (w, h) = display.get_framebuffer_dimensions();
 
@@ -34,7 +37,7 @@ fn main() {
         glium_text::draw(&text, &system, &mut target, matrix.into_fixed(), (1.0, 1.0, 0.0, 1.0));
         target.finish().unwrap();
 
-        thread::sleep_ms(17);
+        thread::sleep(sleep_duration);
 
         for event in display.poll_events() {
             match event {

@@ -4,6 +4,7 @@ extern crate cgmath;
 
 use std::path::Path;
 use std::thread;
+use std::time::Duration;
 use cgmath::FixedArray;
 use glium::Surface;
 use glium::glutin;
@@ -27,6 +28,8 @@ fn main() {
 
     let mut buffer = String::new();
 
+    let sleep_duration = Duration::from_millis(17);
+
     println!("Type with your keyboard");
 
     'main: loop {
@@ -46,7 +49,7 @@ fn main() {
         glium_text::draw(&text, &system, &mut target, matrix.into_fixed(), (1.0, 1.0, 0.0, 1.0));
         target.finish().unwrap();
 
-        thread::sleep_ms(17);
+        thread::sleep(sleep_duration);
 
         for event in display.poll_events() {
             match event {
