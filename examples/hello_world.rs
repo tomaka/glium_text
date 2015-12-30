@@ -4,7 +4,6 @@ extern crate cgmath;
 
 use std::thread;
 use std::time::Duration;
-use cgmath::FixedArray;
 use glium::Surface;
 use glium::glutin;
 
@@ -25,16 +24,16 @@ fn main() {
     'main: loop {
         let (w, h) = display.get_framebuffer_dimensions();
 
-        let matrix = cgmath::Matrix4::new(
+        let matrix:[[f32; 4]; 4] = cgmath::Matrix4::new(
             2.0 / text_width, 0.0, 0.0, 0.0,
             0.0, 2.0 * (w as f32) / (h as f32) / text_width, 0.0, 0.0,
             0.0, 0.0, 1.0, 0.0,
             -1.0, -1.0, 0.0, 1.0f32,
-        );
+        ).into();
 
         let mut target = display.draw();
         target.clear_color(0.0, 0.0, 0.0, 1.0);
-        glium_text::draw(&text, &system, &mut target, matrix.into_fixed(), (1.0, 1.0, 0.0, 1.0));
+        glium_text::draw(&text, &system, &mut target, matrix, (1.0, 1.0, 0.0, 1.0));
         target.finish().unwrap();
 
         thread::sleep(sleep_duration);

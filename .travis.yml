@@ -4,8 +4,11 @@ rust:
  - stable
  - nightly
 
-install:
-    - sudo apt-get install libXxf86vm-dev libosmesa6-dev
+addons:
+  apt:
+    packages:
+    - libxxf86vm-dev
+    - libosmesa6-dev
 
 after_success:
     - |
