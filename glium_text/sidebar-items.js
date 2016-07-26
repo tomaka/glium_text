@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["draw",""]],"struct":[["FontTexture","Texture which contains the characters of the font."],["TextDisplay","Object that will allow you to draw a text."],["TextSystem","Object that contains the elements shared by all `TextDisplay` objects."]]});
