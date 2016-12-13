@@ -3,6 +3,8 @@ name = "glium_text"
 version = "0.10.0"
 authors = ["Pierre Krieger <pierre.krieger1708@gmail.com>"]
 description = "Text drawing with glium and freetype"
+documentation = "https://docs.rs/glium_text"
+repository = "https://github.com/tomaka/glium_text"
 keywords = ["text", "opengl"]
 license = "MIT"
 
