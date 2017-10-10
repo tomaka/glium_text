@@ -8,9 +8,11 @@ use glium::Surface;
 use glium::glutin;
 
 fn main() {
-    use glium::DisplayBuild;
+    let mut events_loop = glutin::EventsLoop::new();
+    let window = glutin::WindowBuilder::new();
+    let context = glutin::ContextBuilder::new();
+    let display = glium::Display::new(window, context, &events_loop).unwrap();
 
-    let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
     let system = glium_text::TextSystem::new(&display);
 
     let font = glium_text::FontTexture::new(&display, &include_bytes!("font.ttf")[..], 70).unwrap();
@@ -38,11 +40,18 @@ fn main() {
 
         thread::sleep(sleep_duration);
 
-        for event in display.poll_events() {
+        let mut closed = false;
+        events_loop.poll_events(|event| {
             match event {
-                glutin::Event::Closed => break 'main,
-                _ => ()
+                glutin::Event::WindowEvent { event, .. } => match event {
+                    glutin::WindowEvent::Closed => closed = true,
+                    _ => ()
+                },
+                _ => (),
             }
+        });
+        if closed {
+            break;
         }
     }
 }
