@@ -3,16 +3,16 @@ extern crate glium_text;
 extern crate cgmath;
 
 use std::path::Path;
-use std::thread;
-use std::time::Duration;
 use glium::Surface;
-use glium::glutin;
+use glium::glutin::{ControlFlow, Event, self, WindowEvent};
 
 fn main() {
-    use glium::DisplayBuild;
     use std::fs::File;
 
-    let display = glutin::WindowBuilder::new().with_dimensions(1024, 768).build_glium().unwrap();
+    let mut event_loop = glutin::EventsLoop::new();
+    let window = glutin::WindowBuilder::new().with_dimensions(1024, 768);
+    let context = glutin::ContextBuilder::new();
+    let display = glium::Display::new(window, context, &event_loop).unwrap();
     let system = glium_text::TextSystem::new(&display);
 
     let font = match std::env::args().nth(1) {
@@ -27,11 +27,9 @@ fn main() {
 
     let mut buffer = String::new();
 
-    let sleep_duration = Duration::from_millis(17);
-
     println!("Type with your keyboard");
 
-    'main: loop {
+    event_loop.run_forever(|event| {
         let text = glium_text::TextDisplay::new(&system, &font, &buffer);
 
         let (w, h) = display.get_framebuffer_dimensions();
@@ -48,16 +46,15 @@ fn main() {
         glium_text::draw(&text, &system, &mut target, matrix, (1.0, 1.0, 0.0, 1.0));
         target.finish().unwrap();
 
-        thread::sleep(sleep_duration);
-
-        for event in display.poll_events() {
+        if let Event::WindowEvent {event, ..} = event {
             match event {
-                glutin::Event::ReceivedCharacter('\r') => buffer.clear(),
-                glutin::Event::ReceivedCharacter(c) if c as u32 == 8 => { buffer.pop(); },
-                glutin::Event::ReceivedCharacter(chr) => buffer.push(chr),
-                glutin::Event::Closed => break 'main,
+                WindowEvent::ReceivedCharacter('\r') => buffer.clear(),
+                WindowEvent::ReceivedCharacter(c) if c as u32 == 8 => { buffer.pop(); },
+                WindowEvent::ReceivedCharacter(chr) => buffer.push(chr),
+                WindowEvent::Closed => return ControlFlow::Break,
                 _ => ()
             }
         }
-    }
+        ControlFlow::Continue
+    });
 }
