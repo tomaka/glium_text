@@ -10,7 +10,7 @@ fn main() {
     use std::fs::File;
 
     let mut event_loop = glutin::EventsLoop::new();
-    let window = glutin::WindowBuilder::new().with_dimensions(1024, 768);
+    let window = glutin::WindowBuilder::new().with_dimensions((1024, 768).into());
     let context = glutin::ContextBuilder::new();
     let display = glium::Display::new(window, context, &event_loop).unwrap();
     let system = glium_text::TextSystem::new(&display);
@@ -51,7 +51,7 @@ fn main() {
                 WindowEvent::ReceivedCharacter('\r') => buffer.clear(),
                 WindowEvent::ReceivedCharacter(c) if c as u32 == 8 => { buffer.pop(); },
                 WindowEvent::ReceivedCharacter(chr) => buffer.push(chr),
-                WindowEvent::Closed => return ControlFlow::Break,
+                WindowEvent::CloseRequested => return ControlFlow::Break,
                 _ => ()
             }
         }

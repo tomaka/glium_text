@@ -7,7 +7,7 @@ use glium::glutin::{ControlFlow, Event, self, WindowEvent};
 
 fn main() {
     let mut event_loop = glutin::EventsLoop::new();
-    let window = glutin::WindowBuilder::new().with_dimensions(1024, 768);
+    let window = glutin::WindowBuilder::new().with_dimensions((1024, 768).into());
     let context = glutin::ContextBuilder::new();
     let display = glium::Display::new(window, context, &event_loop).unwrap();
     let system = glium_text::TextSystem::new(&display);
@@ -34,7 +34,7 @@ fn main() {
         target.finish().unwrap();
 
         match event {
-            Event::WindowEvent {event: WindowEvent::Closed, ..} => ControlFlow::Break,
+            Event::WindowEvent {event: WindowEvent::CloseRequested, ..} => ControlFlow::Break,
             _ => ControlFlow::Continue,
         }
     });
