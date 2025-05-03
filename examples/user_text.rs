@@ -2,59 +2,67 @@ extern crate glium;
 extern crate glium_text;
 extern crate cgmath;
 
-use std::path::Path;
-use glium::Surface;
-use glium::glutin::{ControlFlow, Event, self, WindowEvent};
+use glium::{winit, Surface};
 
 fn main() {
-    use std::fs::File;
+    let event_loop = winit::event_loop::EventLoop::builder().build().unwrap();
 
-    let mut event_loop = glutin::EventsLoop::new();
-    let window = glutin::WindowBuilder::new().with_dimensions((1024, 768).into());
-    let context = glutin::ContextBuilder::new();
-    let display = glium::Display::new(window, context, &event_loop).unwrap();
+    let (window, display) = glium::backend::glutin::SimpleWindowBuilder::new()
+        .with_inner_size(
+            1024,
+            768,
+        )
+        .build(&event_loop);
+
     let system = glium_text::TextSystem::new(&display);
-
-    let font = match std::env::args().nth(1) {
-        Some(file) => glium_text::FontTexture::new(&display, File::open(&Path::new(&file)).unwrap(), 70),
-        None => {
-            match File::open(&Path::new("C:\\Windows\\Fonts\\Arial.ttf")) {
-                Ok(f) => glium_text::FontTexture::new(&display, f, 70),
-                Err(_) => glium_text::FontTexture::new(&display, &include_bytes!("font.ttf")[..], 70),
-            }
-        }
-    }.unwrap();
+    let font = glium_text::FontTexture::new(&display, &include_bytes!("font.ttf")[..], 70).unwrap();
 
     let mut buffer = String::new();
 
     println!("Type with your keyboard");
 
-    event_loop.run_forever(|event| {
-        let text = glium_text::TextDisplay::new(&system, &font, &buffer);
+    #[allow(deprecated)]
+    event_loop.run(move |event, window_target| {
+        match event {
+            glium::winit::event::Event::WindowEvent { event, .. } => match event {
+                glium::winit::event::WindowEvent::CloseRequested => {
+                    window_target.exit();
+                },
+                glium::winit::event::WindowEvent::KeyboardInput {
+                    event: glium::winit::event::KeyEvent { logical_key: key, state: glium::winit::event::ElementState::Pressed, .. },
+                    ..
+                } => match key.as_ref() {
+                    glium::winit::keyboard::Key::Named(glium::winit::keyboard::NamedKey::Enter) => {
+                        buffer.clear();
+                        window.request_redraw();
+                    },
+                    glium::winit::keyboard::Key::Character(chr) => {
+                        buffer.push_str(chr);
+                        window.request_redraw();
+                    },
+                    _ => (),
+                },
+                glium::winit::event::WindowEvent::RedrawRequested => {
+                    let text = glium_text::TextDisplay::new(&system, &font, &buffer);
 
-        let (w, h) = display.get_framebuffer_dimensions();
+                    let (w, h) = display.get_framebuffer_dimensions();
 
-        let matrix:[[f32; 4]; 4] = cgmath::Matrix4::new(
-            0.1, 0.0, 0.0, 0.0,
-            0.0, 0.1 * (w as f32) / (h as f32), 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
-            -0.9, 0.0, 0.0, 1.0f32,
-        ).into();
+                    let matrix:[[f32; 4]; 4] = cgmath::Matrix4::new(
+                        0.1, 0.0, 0.0, 0.0,
+                        0.0, 0.1 * (w as f32) / (h as f32), 0.0, 0.0,
+                        0.0, 0.0, 1.0, 0.0,
+                        -0.9, 0.0, 0.0, 1.0f32,
+                    ).into();
 
-        let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 0.0, 1.0);
-        glium_text::draw(&text, &system, &mut target, matrix, (1.0, 1.0, 0.0, 1.0));
-        target.finish().unwrap();
-
-        if let Event::WindowEvent {event, ..} = event {
-            match event {
-                WindowEvent::ReceivedCharacter('\r') => buffer.clear(),
-                WindowEvent::ReceivedCharacter(c) if c as u32 == 8 => { buffer.pop(); },
-                WindowEvent::ReceivedCharacter(chr) => buffer.push(chr),
-                WindowEvent::CloseRequested => return ControlFlow::Break,
-                _ => ()
-            }
+                    let mut target = display.draw();
+                    target.clear_color(0.0, 0.0, 0.0, 1.0);
+                    glium_text::draw(&text, &system, &mut target, matrix, (1.0, 1.0, 0.0, 1.0));
+                    target.finish().unwrap();
+                }
+                _ => (),
+            },
+            _ => (),
         }
-        ControlFlow::Continue
-    });
+    })
+    .unwrap();
 }

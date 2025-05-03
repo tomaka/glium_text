@@ -155,7 +155,7 @@ impl FontTexture {
             };
 
             let mut raw = ::std::ptr::null_mut();
-            if freetype::FT_New_Library(&mut MEMORY, &mut raw) != freetype::FT_Err_Ok {
+            if freetype::FT_New_Library(&raw mut MEMORY, &mut raw) != freetype::FT_Err_Ok {
                 return Err(());
             }
             freetype::FT_Add_Default_Modules(raw);
@@ -186,11 +186,11 @@ impl FontTexture {
 
             let mut result = Vec::new();
 
-            let mut g: freetype::FT_UInt = std::mem::uninitialized();
+            let mut g: freetype::FT_UInt = 0;
             let mut c = freetype::FT_Get_First_Char(face, &mut g);
 
             while g != 0 {
-                result.push(std::mem::transmute(c as u32));     // TODO: better solution?
+                result.push(std::char::from_u32(c as u32).unwrap());     // TODO: better solution?
                 c = freetype::FT_Get_Next_Char(face, c, &mut g);
             }
 
@@ -206,7 +206,7 @@ impl FontTexture {
         let texture = glium::texture::Texture2d::new(facade, &texture_data).unwrap();
 
         Ok(FontTexture {
-            texture: texture,
+            texture,
             character_infos: chr_infos,
         })
     }
@@ -296,7 +296,7 @@ impl<F> TextDisplay<F> where F: Deref<Target=FontTexture> {
     pub fn new(system: &TextSystem, texture: F, text: &str) -> TextDisplay<F> {
         let mut text_display = TextDisplay {
             context: system.context.clone(),
-            texture: texture,
+            texture,
             vertex_buffer: None,
             index_buffer: None,
             total_text_width: 0.0,
@@ -321,7 +321,7 @@ impl<F> TextDisplay<F> where F: Deref<Target=FontTexture> {
         self.index_buffer = None;
 
         // returning if no text
-        if text.len() == 0 {
+        if text.is_empty() {
             return;
         }
 
@@ -458,7 +458,7 @@ pub fn draw<F, S: ?Sized, M>(text: &TextDisplay<F>, system: &TextSystem, target:
         };
 
         DrawParameters {
-            blend: blend,
+            blend,
             .. Default::default()
         }
     };
@@ -487,7 +487,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
     // the width is chosen more or less arbitrarily, because we can store everything as long as
     //  the texture is at least as wide as the widest character
     // we just try to estimate a width so that width ~= height
-    let texture_width = get_nearest_po2(std::cmp::max(font_size * 2 as u32,
+    let texture_width = get_nearest_po2(std::cmp::max(font_size * 2_u32,
         ((((characters_list.len() as u32) * font_size * font_size) as f32).sqrt()) as u32));
 
     // we store the position of the "cursor" in the destination texture
@@ -535,7 +535,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
         let offset_x_before_copy = cursor_offset.0;
         if bitmap.rows >= 1 {
             let destination = &mut texture_data[(cursor_offset.0 + cursor_offset.1 * texture_width) as usize ..];
-            let source = std::mem::transmute(bitmap.buffer);
+            let source = bitmap.buffer as *const u8;
             let source = std::slice::from_raw_parts(source, destination.len());
 
             for y in 0 .. bitmap.rows as u32 {
@@ -545,7 +545,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
                 for x in 0 .. bitmap.width {
                     // the values in source are bytes between 0 and 255, but we want floats between 0 and 1
                     let val: u8 = *source.get(x as usize).unwrap();
-                    let val = (val as f32) / (std::u8::MAX as f32);
+                    let val = (val as f32) / (u8::MAX as f32);
                     let dest = destination.get_mut(x as usize).unwrap();
                     *dest = val;
                 }
@@ -579,7 +579,7 @@ unsafe fn build_font_image(face: freetype::FT_Face, characters_list: Vec<char>, 
 
     // now our texture is finished
     // we know its final dimensions, so we can divide all the pixels values into (0,1) range
-    assert!((texture_data.len() as u32 % texture_width) == 0);
+    assert_eq!((texture_data.len() as u32 % texture_width), 0);
     let texture_height = (texture_data.len() as u32 / texture_width) as f32;
     let float_texture_width = texture_width as f32;
     for chr in characters_infos.iter_mut() {
